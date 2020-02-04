@@ -1,6 +1,70 @@
----
-layout: default
----
-
 Project 0
-
+This project was to learn how to overlay images of different color scales. We took real world data of separate color scale plates to make a <br></br>
+full colorized image. My approach was to first crop out the white borders for easier aligning. I had two methods for aligning: the naive exhaustive <br></br>
+search and the gaussian pyramid search method. The first method just takes a window of displacements and tries every one of them to see which displacement <br></br>
+works the best. All of these images were aligning the green and red plates to the blue plate. The gaussian pyramid way first does a gaussian blur over <br></br>
+the image and then rescales the image by half. This continues until the image is under a certain size. Then it begins trying to find the best displacement. <br></br>
+The best displacement is propogated down the pyramid and is used as an estame for the next best displacement. For the photo of emir, I had to align the <br></br>
+blue and red plates to the green plate.
+<br></br>
+<img src="pictures/cathedral.jpg" height="500" width="500">
+Green disp: [5, 2]
+Red disp: [12, 3]
+<br></br>
+<img src="pictures/emir.jpg" height="500" width="500">
+Blue disp: [-49, -24]
+Red disp: [57, 17]
+<br></br>
+<img src="pictures/harvesters.jpg" height="500" width="500">
+Green disp: [59, 16]
+Red disp: [124, 13]
+<br></br>
+<img src="pictures/icon.jpg" height="500" width="500">
+Green disp: [40, 17]
+Red disp: [89, 23]
+<br></br>
+<img src="pictures/lady.jpg" height="500" width="500">
+Green disp: [48, 9]
+Red disp: [112, 11]
+<br></br>
+<img src="pictures/melons.jpg" height="500" width="500">
+Green disp: [82, 10]
+Red disp: [129, 13]
+<br></br>
+<img src="pictures/monastery.jpg" height="500" width="500">
+Green disp: [-3, 2]
+Red disp: [3, 2]
+<br></br>
+<img src="pictures/onion_church.jpg" height="500" width="500">
+Green disp: [51, 26]
+Red disp: [108, 36]
+<br></br>
+<img src="pictures/self_portrait.jpg" height="500" width="500">
+Green disp: [78, 29]
+Red disp: [176, 37]
+<br></br>
+<img src="pictures/three_generations.jpg" height="500" width="500">
+Green disp: [53, 14]
+Red disp: [112, 11]
+<br></br>
+<img src="pictures/tobolsk.jpg" height="500" width="500">
+Green disp: [3, 2]
+Red disp: [6, 3]
+<br></br>
+<img src="pictures/train.jpg" height="500" width="500">
+Green disp: [42, 5]
+Red disp: [87, 32]
+<br></br>
+<img src="pictures/village.jpg" height="500" width="500">
+Green disp: [65, 12]
+Red disp: [137, 22]
+<br></br>
+<img src="pictures/workshop.jpg" height="500" width="500">
+Green disp: [52, 0]
+Red disp: [104, -12]
+<img src="pictures/pillars.jpg" height="500" width="500">
+Green disp: [22, 21]
+Red disp: [60, 29]
+<img src="pictures/people.jpg" height="500" width="500">
+Green disp: [71, 39]
+Red disp: [148, 63]

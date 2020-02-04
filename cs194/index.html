@@ -5,7 +5,7 @@ search and the gaussian pyramid search method. The first method just takes a win
 works the best. All of these images were aligning the green and red plates to the blue plate. The gaussian pyramid way first does a gaussian blur over <br></br>
 the image and then rescales the image by half. This continues until the image is under a certain size. Then it begins trying to find the best displacement. <br></br>
 The best displacement is propogated down the pyramid and is used as an estame for the next best displacement. For the photo of emir, I had to align the <br></br>
-blue and red plates to the green plate.
+blue and red plates to the green plate. The metric for alignment I used was zero-normalized cross correlation.
 <br></br>
 <img src="pictures/cathedral.jpg" height="500" width="500">
 Green disp: [5, 2]

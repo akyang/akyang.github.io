@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.img-with-text {
+  text-align: center;
+}
+
+.column {
+  float: left;
+  width: 25%;
+  padding: 5px;
+  text-align: center;
+}
+
+.column5 {
+  float: left;
+  width: 20%;
+  padding: 5px;
+  text-align: center;
+}
+
+/* Clearfix (clear floats) */
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+</style>
+</head>
+
+<center><h1>Project 1: Fun with Filters and Frequencies!</h1></center>
+<h2>Part 1.1: Finite Difference Operator</h2>
+<p>Let Dx=[1 -1], Dy=[1 -1].T. The partial derivative of the image with respect to x is found by convoluting the image with Dx. The partial derivative of the image with respect to y is found by convoluting the image with Dy. The gradient magnitude is found by taking the square root of the sum of the squares of both partial derivatives.</p>
+<div class="img-with-text">
+  <img src="./gradients/cameraman.png">
+  <p> cameraman.jpg </p>
+</div>
+<div class="row">
+  <div class="column">
+    <img src="./gradients/gradx.png" style="width:100%">
+    <p> Gradient w.r.t x </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/grady.png" style="width:100%">
+    <p> Gradient w.r.t y </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gradmagnoisy.png" style="width:100%">
+    <p> Magnitude of Gradient unfiltered </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gradmagfiltered.png" style="width:100%">
+    <p> Magnitude of Gradient filtered (> 0.28) </p>
+  </div>
+</div>
+
+<h2>Part 1.2: Derivative of Gaussian (DoG) Filter</h2>
+<p>The Gaussian filter hass size=12 and sigma=2. Image after blurring:</p>
+<div class="img-with-text">
+  <img src="./gradients/cameramanblur.png">
+  <p> blurred cameraman.jpg with gaussian filter</p>
+</div>
+<p>Two Convolutions:</p>
+<div class="row">
+  <div class="column">
+    <img src="./gradients/gausstwox.png" style="width:100%">
+    <p> Gradient w.r.t x </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gausstwoy.png" style="width:100%">
+    <p> Gradient w.r.t y </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gausstwonoisy.png" style="width:100%">
+    <p> Magnitude of Gradient unfiltered </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gausstwofiltered.png" style="width:100%">
+    <p> Magnitude of Blurred Gradient filtered (> 0.03) </p>
+  </div>
+</div>
+<p>Already we can see that the edges are clearer and the picture overall has less noise because of the initial blurring with the Gaussian filter.</p>
+<p>Below is the single convolution method, done by taking the derivative of the filter w.r.t x and y, and then convoluting the image with the resulting DoG filter:</p>
+<div class="row">
+  <div class="column">
+    <img src="./gradients/gaussonex.png" style="width:100%">
+    <p> Gradient w.r.t x </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gaussoney.png" style="width:100%">
+    <p> Gradient w.r.t y </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gaussonenoisy.png" style="width:100%">
+    <p> Magnitude of Gradient unfiltered </p>
+  </div>
+  <div class="column">
+    <img src="./gradients/gaussonefiltered.png" style="width:100%">
+    <p> Magnitude of Blurred Gradient filtered (> 0.03) </p>
+  </div>
+</div>
+<p>The final filtered images of both methods look the same, as expected.</p>
+
+<h2>Part 1.3: Image Straightening</h2>
+<div class="row">
+  <div class="column">
+    <img src="./rotation/facade.jpg" style="width:100%">
+    <p> facade.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/facade_rotated.jpg" style="width:100%">
+    <p> facade.jpg (rotated -4 degrees) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_facade_before.jpg" style="width:100%">
+    <p> facade.jpg histogram (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_facade_after.jpg" style="width:100%">
+    <p> facade.jpg histogram (rotated -4 degrees) </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column">
+    <img src="./rotation/basketball.jpg" style="width:100%">
+    <p> basketball.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/basketball_rotated.jpg" style="width:100%">
+    <p> basketball.jpg (rotated 14 degrees) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_basketball_before.jpg" style="width:100%">
+    <p> basketball.jpg histogram (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_basketball_after.jpg" style="width:100%">
+    <p> basketball.jpg histogram (rotated 14 degrees) </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="column">
+    <img src="./rotation/taipei.jpg" style="width:100%">
+    <p> taipei.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/taipei_rotated.jpg" style="width:100%">
+    <p> taipei.jpg (rotated -10 degrees) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_taipei_before.jpg" style="width:100%">
+    <p> taipei.jpg histogram (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_taipei_after.jpg" style="width:100%">
+    <p> taipei.jpg histogram (rotated -10 degrees) </p>
+  </div>
+</div>
+
+ <div class="row">
+  <div class="column">
+    <img src="./rotation/homerchu.jpg" style="width:100%">
+    <p> homerchu.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/homerchu_rotated.jpg" style="width:100%">
+    <p> homerchu.jpg (rotated 7 degrees) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_homerchu_before.jpg" style="width:100%">
+    <p> homerchu.jpg histogram (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_homerchu_after.jpg" style="width:100%">
+    <p> homerchu.jpg histogram (rotated 7 degrees) </p>
+  </div>
+</div>
+
+<p>The straightening algorithm fails to straighten the bottom picture most likely because the most distinctive lines (the different colored flowers) should not actually be straight. The algorithm tries to straighten these lines, which results in a originally straight picture now rotated.</p>
+ <div class="row">
+  <div class="column">
+    <img src="./rotation/sapporo.jpg" style="width:100%">
+    <p> sapporo.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/sapporo_rotated.jpg" style="width:100%">
+    <p> sapporo.jpg (rotated 19 degrees) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_sapporo_before.jpg" style="width:100%">
+    <p> sapporo.jpg histogram (original) </p>
+  </div>
+  <div class="column">
+    <img src="./rotation/hist_sapporo_after.jpg" style="width:100%">
+    <p> sapporo.jpg histogram (rotated 19 degrees) </p>
+  </div>
+</div>
+
+<h2>Part 2.1: Image "Sharpening"</h2>
+The images below have been sharpened by the following: img + alpha * img * (I - G), where G is the gaussian filter with size=11 and sigma=3, I is the unit impulse, and alpha=2.
+ <div class="row">
+  <div class="column">
+    <img src="./sharpen/taj.jpg" style="width:100%">
+    <p> taj.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./sharpen/taj_sharp.jpg" style="width:100%">
+    <p> taj.jpg (sharpened) </p>
+  </div>
+</div>
+<div class="row">
+  <div class="column">
+    <img src="./sharpen/nomos.jpg" style="width:100%">
+    <p> nomos.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./sharpen/nomos_sharp.jpg" style="width:100%">
+    <p> nomos.jpg (sharpened) </p>
+  </div>
+</div><div class="row">
+  <div class="column">
+    <img src="./sharpen/pencil.jpg" style="width:100%">
+    <p> pencil.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./sharpen/pencil_sharp.jpg" style="width:100%">
+    <p> pencil.jpg (sharpened) </p>
+  </div>
+</div>
+Below is an example of blurring a photo and then sharpening it.
+ <div class="row">
+  <div class="column">
+    <img src="./sharpen/yosemite.jpg" style="width:100%">
+    <p> yosemite.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./sharpen/yosemite_blurred.jpg" style="width:100%">
+    <p> yosemite.jpg (blurred) </p>
+  </div>
+  <div class="column">
+    <img src="./sharpen/yosemite_sharpened.jpg" style="width:100%">
+    <p> yosemite.jpg (sharpened) </p>
+  </div>
+  <div class="column">
+    <img src="./sharpen/yosemite.jpg" style="width:100%">
+    <p> yosemite.jpg (original) </p>
+  </div>
+</div>
+
+<h2>Part 2.2: Hybrid Images</h2>
+<p>Grayscale Images:</p>
+ <div class="row">
+  <div class="column">
+    <img src="./hybrid/nutmeg.jpg" style="width:100%">
+    <p> nutmeg.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/DerekPicture.jpg" style="width:100%">
+    <p> DerekPicture.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/nutmeg-derek.jpg" style="width:100%">
+    <p> nutmeg-derek.jpg (hybrid) </p>
+  </div>
+</div>
+ <div class="row">
+  <div class="column">
+    <img src="./hybrid/sanders.jpg" style="width:100%">
+    <p> sanders.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/trump.jpg" style="width:100%">
+    <p> trump.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/sanders-trump.jpg" style="width:100%">
+    <p> sanders-trump.jpg (hybrid) </p>
+  </div>
+</div>
+<div class="row">
+  <div class="column">
+    <img src="./hybrid/tree_two.jpg" style="width:100%">
+    <p> tree_two.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/tree_one.jpg" style="width:100%">
+    <p> tree_one.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/tree-blend.jpg" style="width:100%">
+    <p> tree-blend.jpg (hybrid) </p>
+  </div>
+</div>
+ <div class="row">
+  <div class="column">
+    <img src="./hybrid/mic.jpg" style="width:100%">
+    <p> mic.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/dandelion.jpg" style="width:100%">
+    <p> dandelion.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/mic-dandelion.jpg" style="width:100%">
+    <p> mic-dandelion.jpg (hybrid) </p>
+  </div>
+</div>
+<p> Failure Case: (SF and NYC skylines). I think this failed because there are a lot of small and indistinct edges from the buildings. Also for the NYC skyline, a lot of the buildings are glass, which reflects the color of the sky and makes the edge between them less distinctive. The blurring effect thus looks stronger and when the two skylines are combined only the high frequency lines are seen. </p>
+<div class="row">
+  <div class="column">
+    <img src="./hybrid/sf.jpg" style="width:100%">
+    <p> sf.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/newyork.jpg" style="width:100%">
+    <p> newyork.jpg (original) </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/sf-newyork.jpg" style="width:100%">
+    <p> sf-newyork.jpg (hybrid) </p>
+  </div>
+</div>
+<p>FFT Analysis: (sanders + trump)</p>
+ <div class="row">
+  <div class="column5">
+    <img src="./hybrid/sanders-gray.png" style="width:100%">
+  </div>
+  <div class="column5">
+    <img src="./hybrid/trump-gray.png" style="width:100%">
+  </div>
+  <div class="column5">
+    <img src="./hybrid/sanders-high.png" style="width:100%">
+  </div>
+  <div class="column5">
+    <img src="./hybrid/trump-high.png" style="width:100%">
+  </div>
+  <div class="column5">
+    <img src="./hybrid/sanders-trump.jpg" style="width:100%">
+  </div>
+</div>
+<div class="row">
+  <div class="column5">
+    <img src="./hybrid/sandersfft.png" style="width:100%">
+    <p> Sanders (grayscale) frequency </p>
+  </div>
+  <div class="column5">
+    <img src="./hybrid/trumpfft.png" style="width:100%">
+    <p> Trump (grayscale) frequency</p>
+  </div>
+  <div class="column5">
+    <img src="./hybrid/sandershighfft.png" style="width:100%">
+    <p> Sanders frequency (high freq only) </p>
+  </div>
+  <div class="column5">
+    <img src="./hybrid/trumplowfft.png" style="width:100%">
+    <p> Trump frequency (low freq only) </p>
+  </div>
+  <div class="column5">
+    <img src="./hybrid/hybridfft.png" style="width:100%">
+    <p> Hybrid frequency </p>
+  </div>
+</div>
+<p>Bells and Whistles: (colored images). There is just a subtle difference when adding the color for the high frequency portion. I think the having color for both images looks the best.</p>
+<div class="row">
+  <div class="column">
+    <img src="./hybrid/nutmeg-derek.jpg" style="width:100%">
+    <p> nutmeg-derek.jpg </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/nutmeg-derek-nutmeg-color.jpg" style="width:100%">
+    <p> nutmeg-derek-nutmeg-color.jpg </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/nutmeg-derek-derek-color.jpg" style="width:100%">
+    <p> nutmeg-derek-derek-color.jpg </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/nutmeg-derek-full-color.jpg" style="width:100%">
+    <p> nutmeg-derek-full-color.jpg </p>
+  </div>
+</div>
+<div class="row">
+  <div class="column">
+    <img src="./hybrid/sanders-trump.jpg" style="width:100%">
+    <p> sanders-trump.jpg </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/sanders-trump-sanders-color.jpg" style="width:100%">
+    <p> sanders-trump-sanders-color.jpg </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/sanders-trump-trump-color.jpg" style="width:100%">
+    <p> sanders-trump-trump-color.jpg </p>
+  </div>
+  <div class="column">
+    <img src="./hybrid/sanders-trump-full-color.jpg" style="width:100%">
+    <p> sanders-trump-full-color.jpg </p>
+  </div>
+</div>
+
+<h2>Part 2.3: Gaussian and Laplacian Stacks</h2>
+<p>Each top row shows the gaussian stack for sigma=1,2,4,8,16 and size=2*sigma. The bottom row shows the corresponding laplacian stack of the iamge.</p>
+<center>
+<p> lincoln.jpg </p>
+<img src="./stacks/lincoln.jpg" style="width:70%">
+<p> monalisa.jpg </p>
+<img src="./stacks/monalisa.jpg" style="width:70%">
+<p> sanders-trump.jpg </p>
+<img src="./stacks/sanders-trump.jpg" style="width:70%">
+</center>
+ 
+<h2>Part 2.4: Multiresolutional Blending + Bells and Whistles </h2>
+  <p> Each blended image has the two original images on the left, followed by the laplacian stack of the first image weighted by the gaussian stack of the mask (top row), the laplacian stack of the second image weighted by the gaussian stack of the mask (middle row), followed by combination of the top and middle row (bottom row). The final blended image is right below.</p> 
+<center>
+<p>The following images are blended using a vertical mask: </p>
+<img src="./blend/vmask.jpg" style="width:20%" border="5">
+<p> Oraple </p>
+<img src="./blend/oraple_stack.jpg" style="width:70%">
+<img src="./blend/oraple.jpg" style="width:40%">
+<p> Soon </p>
+<img src="./blend/soon_stack.jpg" style="width:70%">
+<img src="./blend/soon.jpg" style="width:40%">
+<p> Kueen </p>
+<img src="./blend/kueen_stack.jpg" style="width:70%">
+<img src="./blend/kueen.jpg" style="width:40%">
+<p> The images below are blended using an irregular mask: </p>
+<img src="./blend/mario-mask.jpg" style="width:20%">
+<p> Mario in NYC </p>
+<img src="./blend/mario_stack.jpg" style="width:70%">
+<img src="./blend/mario-nyc.jpg" style="width:40%">
+</center>
+
+
+
+

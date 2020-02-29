@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Mesh Editor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2020</h1>
+<h1 align="middle">Project 2: Mesh Editor</h1>
+<h2 align="middle">Alex Yang, CS184-AEO</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>In this project, I implemented a mesh editor that can use either Bezier curves and surfaces or triangle meshes to represent 3D objects. The triangle mesh method also has upsampling so that there are more smaller triangles to better approximate the actual object. I liked how I could see two different ways of representing objects and the pros and cons of both. It was also interesting to see how big of a difference loop subdivision made in better representing the objects. </p>
+
+<h2 align="middle">Section I: Bezier Curves and Surfaces</h2>
+
+<h3 align="middle">Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
+
+<p>The de Casteljau algorithm is used to evaluate Bezier curves from control points. Each step of the algorithm evaluates a new set of points which are used in the successive step of the algorithm as the new control points. Eventually, the algorithm reduces the set of points to just one point, which is a point that lies on the Bezier curve for a given paramter t. Different values of t will yield different points on the curve.</p>
+<p>My implementation generates a new point by linearly interpolating consecutive points of the control set with the parameter t. These new points are stored and returned. Future steps of the algorithm used this returned set of points as the new control set until only one point remains. </p>
+
+<p>Below depicts the process of de Casteljau's algorithm. We start with the six control points and each step interpolates a new set of blue points. After step 5, the set of six points is reduced to a set of one point, which is a point that lies on the Bezier curve (green). The last image is a Bezier curve with different control points and parameter t.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/bzc-1-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Control points</figcaption>
+      </td>
+      <td>
+        <img src="images/bzc-1-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">de Casteljau: Step 1</figcaption>
+      </td>
+      <td>
+        <img src="images/bzc-1-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">de Casteljau: Step 2</figcaption>
+      </td>
+      <td>
+        <img src="images/bzc-1-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">de Casteljau: Step 3</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/bzc-1-5.png" align="middle" width="100%"/>
+        <figcaption align="middle">de Casteljau: Step 4</figcaption>
+      </td>
+      <td>
+        <img src="images/bzc-1-6.png" align="middle" width="100%"/>
+        <figcaption align="middle">de Casteljau: Step 5</figcaption>
+      </td>
+      <td>
+        <img src="images/bzc-1-7.png" align="middle" width="100%"/>
+        <figcaption align="middle">Step 5 with Bezier Curve (green)</figcaption>
+      </td>
+      <td>
+        <img src="images/bzc-1-8.png" align="middle" width="100%"/>
+        <figcaption align="middle">Different control points and t</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+<h3 align="middle">Part 2: Bezier surfaces with separable 1D de Casteljau subdivision</h3>
+<p>De Casteljau's algorithm extends naturally from 2D curves to 3D surfaces. A Bezier surface is made up of Bezier curves going in the same direction. The points on the curves for a given parameter u are used as the control points for the Bezier curves that run in the opposite direction. The points on these perpendicular curves are interpolated with another parameter u. The criss-crossing of Bezier curves creates a Bezier surface, approximating the desired surface.</p>
+<p>My implementation evaluates Bezier surfaces by evaluating patches of the surface. A point on the Bezier patch with parameter u and v is evaluated by first evaluating the Bezier curves that run along the same direction with u. Each curve has it's own set of control points, and is evaluated the same way as part 1 above, using the same u for all curves. Then, the evaluated points on each of these curves is the new set of control points for the final Bezier curve that runs perpendicular to the original curves. The final point is interpolated using de Casteljau's algorithm with the new control points and v.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/bez-1-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Bezier surface approximating a teapot</figcaption>
+      </td>
+      <td>
+        <img src="images/bez-1-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Teapot with wireframe</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h2 align="middle">Section II: Sampling</h2>
+
+<h3 align="middle">Part 3: Average normals for half-edge meshes</h3>
+<p>My implementation builds the normal vector of the vertex by summing the weighted normal vectors of each incident face to the vertex. The weighted vector of a face is the normal vector of the face multiplied by the area of the face. The weighted vectors are summed together into one vector, which is then normalized to obtain the vertex normal vector.</p>
+<p>Given a halfedge H, the vertices of the next (clockwise order) face are the central vertex, the source vertex of H->twin, and the source vertex of H->twin->next->twin. If the twin is not a boundary edge, we find the area of the face by taking half the cross product of two of the edges of the face, which gives us the weight of the face normal vector. If it is a boundary edge, we continue the process to the next face without calculating the area. The algorithm stops adding the weighted vectors to the vertex normal when we reach back to the original halfedge. Finally, we normalize the vertex normal.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/normal-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Teapot shading without vertex normals</figcaption>
+      </td>
+      <td>
+        <img src="images/normal-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Teapot shading with vertex normals</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3 align="middle">Part 4: Half-edge flip</h3>
+<p>My implementation reassigns pointers according to the diagram below. On the left is the layout of two triangles before an edge flip. The right shows the layout of halfedges, vertices, and faces after flipping the middle edge. Edge flipping is done by modifying the mesh element attributes of each halfedge according to the diagram below. After halfedges are modified, the halfedge attribute of each face is reassigned to ensure correctness. For example f0's halfedge is set to h0 and f1's halfedge is set to h3. Finally, the halfedge attribute of each vertex is reassigned.</p>
+<center>
+  <img src="images/flip-diagram.png" align="middle" width="100%"/>
+  <figcaption align="middle">Before and after edge flipping with mesh element labels</figcaption>
+</center>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/flip-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Original</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 1</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 2</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 3</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/flip-5.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 4</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-6.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 5</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-7.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 6</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-8.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 7</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3 align="middle">Part 5: Half-edge split</h3>
+<p>My implementation reassigns pointers according to the diagram below. On the left is the layout of two triangles before an edge split. The right shows the layout of halfedges, vertices, edges, and faces after splitting along the middle horizontal. Edge splitting is done by modifying the mesh element attributes of each halfedge according to the diagram below. After halfedges are modified, the halfedge attribute of each face, vertex, and edge is reassigned to ensure correctness. For example f0's halfedge is set to h0 and f1's halfedge is set to h3. Finally, the position of the new middle vertex is calculated using lerp with two opposite points and a parameter of 0.5.</p>
+<center>
+  <img src="images/split-diagram.png" align="middle" width="100%"/>
+  <figcaption align="middle">Before and after edge splitting with mesh element labels</figcaption>
+</center>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/split-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Original</figcaption>
+      </td>
+      <td>
+        <img src="images/split-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 1</figcaption>
+      </td>
+      <td>
+        <img src="images/split-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 2</figcaption>
+      </td>
+      <td>
+        <img src="images/split-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 3</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/split-5.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 4</figcaption>
+      </td>
+      <td>
+        <img src="images/split-6.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 5</figcaption>
+      </td>
+      <td>
+        <img src="images/split-7.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 6</figcaption>
+      </td>
+      <td>
+        <img src="images/split-8.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 7</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<center>Series of Splits</center>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/flip-split-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Original</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-split-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 1</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-split-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 1</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/flip-split-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 2</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-split-5.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 2</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-split-6.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 3</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/flip-split-7.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 3</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-split-8.png" align="middle" width="100%"/>
+        <figcaption align="middle">Flip 4</figcaption>
+      </td>
+      <td>
+        <img src="images/flip-split-9.png" align="middle" width="100%"/>
+        <figcaption align="middle">Split 4</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<center>Alternating flipping and splitting</center>
+
+<h3 align="middle">Part 6: Loop subdivision for mesh upsampling</h3>
+<p>My upsampling implementation first precomputes the new positions of the new and old vertices. The new position of a new vertex is stored with the edge the new vertex will lie on. The new position of an old vertex is calculated by looping through each of it's neighboring vertices, applying some weights, and storing the new position with the old vertex. The actual position isn't updated until the end so that the splitting can be done on the old positions. The upsampling process then divides each triangle into four subtriangles. For each edge, if both end vertices are old, then the edge is split, and the new vertex that is created gets assigned the new position that's stored with the split edge. When an edge is split, the new edges and vertices are flagged as new so that the upsampling method knows which edges to split, flip, and skip. Also, if the edge is new, and strictly one end vertex is new, then the edge is flipped. At the end of one subdivision loop, all edges and vertices have their new flag reset so the next iteration treats the updated mesh as the original mesh.</p>
+<p>After loop subdivision, the mesh becomes less blocky because the desired surface is now represented by more elements, and so angles and curves are better approximated. Sharp corners and edges become rounded out because of the vertex position updates. Even if the original shape should have a sharp edge or corner, the subdivision causes the shape to round out.</p>
+<center>
+  <img src="images/loop-cube-1.png" align="middle" width="30%"/>
+  <figcaption align="middle">Original Cube</figcaption>
+</center>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/loop-cube-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 1</figcaption>
+      </td>
+      <td>
+        <img src="images/loop-cube-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 2</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/loop-cube-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 3</figcaption>
+      </td>
+      <td>
+        <img src="images/loop-cube-5.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 4</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+<p>This rounding effect can be reduced by pre-splitting some edges. Splitting edges so that there are more vertices concentrated around the sharp corners and edges will reduce the rounding effect when upsampling. This is because there will be more vertices along sharp edges and corners to weigh the new positions of the old vertices. Below is an example on the cube:</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/loop-round-1.png" align="middle" width="100%"/>
+        <figcaption align="middle">Cube with split edges</figcaption>
+      </td>
+      <td>
+        <img src="images/loop-round-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 1</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/loop-round-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 2</figcaption>
+      </td>
+      <td>
+        <img src="images/loop-round-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 3</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p>The cube also has an issue of looking assymetric after upsampling. This is because each face of the original cube has one edge across the face connecting two opposite vertices. However, the other two opposite vertices are not connected. This results in some vertices having degree five and other having degree four. The position of a vertex with degree five will be moved more than a vertex with degree four because the position of the higher degree vertex is weighted by five vertices instead of four. Thus, the five degree vertex will move more towards the center of the cube compared to a four degree vertex, resulting in assymetry. This can be corrected by splitting each cube face's edge so that both pairs of opposite vertices are connected. The preprocessing ensures that all vertices have the same degree so that their positions will be updated the same amount.</p>
+<center>
+  <img src="images/loop-sym-1.png" align="middle" width="35%"/>
+  <figcaption align="middle">Cube with better splitting</figcaption>
+</center>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/loop-sym-2.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 1</figcaption>
+      </td>
+      <td>
+        <img src="images/loop-sym-3.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 2</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/loop-sym-4.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 3</figcaption>
+      </td>
+      <td>
+        <img src="images/loop-sym-5.png" align="middle" width="100%"/>
+        <figcaption align="middle">Upsample 4</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+
+</body>
+</html>

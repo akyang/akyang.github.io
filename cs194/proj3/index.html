@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<head>
+<style>
+body {
+  padding: 100px;
+  width: 1000px;
+  margin: auto;
+  text-align: left;
+  font-weight: 300;
+  font-family: 'Roboto', sans-serif;
+}
+
+a {
+  target: '_blank';
+  color: blue;
+  text-decoration: none;
+}
+
+a:hover {
+  color: magenta;
+}
+
+
+</style>
+<title>CS 194 Face Morphing</title>
+</head>
+
+<center>
+  <h1>Project 3: Face Morphing</h1>
+  <h3>Alex Yang</h3>
+</center>
+<br></br>
+
+<h2>Part 1: Defining Correspondences</h2>
+<p>For this project, I decided to morph my face on to George Clooney's. I choose 44 correspondence points outlining basic facial features and 4 correspondence points for the four corners of the image.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/alex.jpg" align="middle" width="100%">
+        <figcaption align="middle">Alex (original)</figcaption>
+      </td>
+      <td>
+        <img src="./images/ordered_alex_pts.jpg" align="middle" width="100%">
+        <figcaption align="middle">Ordered correspondence points</figcaption>
+      </td>
+      <td>
+        <img src="./images/alex_pts.jpg" align="middle" width="100%">
+        <figcaption align="middle">Correspondences on face</figcaption>
+      </td>
+      <td>
+        <img src="./images/alex_del.jpg" align="middle" width="100%">
+        <figcaption align="middle">Delaunay Triangulation</figcaption>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="./images/george.jpg" align="middle" width="100%">
+        <figcaption align="middle">George (original)</figcaption>
+      </td>
+      <td>
+        <img src="./images/ordered_george_pts.jpg" align="middle" width="100%">
+        <figcaption align="middle">Ordered correspondence points</figcaption>
+      </td>
+      <td>
+        <img src="./images/george_pts.jpg" align="middle" width="100%">
+        <figcaption align="middle">Correspondences on face</figcaption>
+      </td>
+      <td>
+        <img src="./images/george_del.jpg" align="middle" width="100%">
+        <figcaption align="middle">Delaunay Triangulation</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h2>Part 2: Computing the "Mid-way Face"</h2>
+<p>To compute the mid-way face, I first found the average shape of our faces by averaging the two sets of correspondence points. Then, I warped both faces to the average shape and cross-dissolved the colors of both images together. To get appropriate pixels from the original images into the morphed image, I use inverse warping with the affine transformation matrices of each original shape to the average shape.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/alex_plt.jpg" align="middle" width="100%">
+        <figcaption align="middle">Alex</figcaption>
+      </td>
+      <td>
+        <img src="./images/midshape.jpg" align="middle" width="100%">
+        <figcaption align="middle">Mid-way face</figcaption>
+      </td>
+      <td>
+        <img src="./images/george_plt.jpg" align="middle" width="100%">
+        <figcaption align="middle">George</figcaption>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="./images/midshape_del.jpg" align="middle" width="100%">
+        <figcaption align="middle">Mid-way shape</figcaption>
+      </td>
+      <td>
+        <img src="./images/midshape.jpg" align="middle" width="100%">
+        <figcaption align="middle">Mid-way face</figcaption>
+      </td>
+      <td>
+        <img src="./images/midshape_del_overlay.jpg" align="middle" width="100%">
+        <figcaption align="middle">Mid-way face with triangulation</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+
+<h2>Part 3: The Morph Sequence</h2>
+<p>To create a morph sequence, a sliding parameter alpha from [0, 1] is used to create the intermediate faces. Alpha is a proportion of how much the original images' shapes and colors are weighted in the intermediate face. Specifically, imm_face = (1 - alpha) * im1 + alpha * im2. For example, the mid-way face above is an intermediate face with alpha=0.5. The sequence has 45 frames, and each frame is 1/30 seconds.</p>
+<div align="middle">
+  <img src="./gifs/alex-george-long.gif" align="middle" width="30%">
+  <figcaption align="middle">Morph sequence (ping-ponged)</figcaption>
+</div>
+
+<h2>Part 4: The "Mean Face" of a Population</h2>
+<p>I choose the neutral expression faces of the <a href="http://www2.imm.dtu.dk/~aam/datasets/datasets.html">IMM Face Database</a> from the Technical University of Denmark as my population. From the pre-annotated images, I computed the average face shape of the population, morphed each image in the population into the average (a few are shown below), and computed the average face of the population.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/avg_shape.jpg" align="middle" width="100%">
+        <figcaption align="middle">Average shape</figcaption>
+      </td>
+      <td>
+        <img src="./images/avg_dane.jpg" align="middle" width="100%">
+        <figcaption align="middle">Average face</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+<p>Below are examples of warping the faces into the average shape of the population. The top row are the original images and the bottom row are the face warped into the average shape.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/01-1m.jpg" align="middle" width="100%">
+        <figcaption align="middle">01-1m</figcaption>
+      </td>
+      <td>
+        <img src="./images/08-1f.jpg" align="middle" width="100%">
+        <figcaption align="middle">08-1f</figcaption>
+      </td>
+      <td>
+        <img src="./images/29-1m.jpg" align="middle" width="100%">
+        <figcaption align="middle">29-1m</figcaption>
+      </td>
+      <td>
+        <img src="./images/35-1f.jpg" align="middle" width="100%">
+        <figcaption align="middle">35-1f</figcaption>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="./images/01-1m-warp.jpg" align="middle" width="100%">
+        <figcaption align="middle">01-1m warped</figcaption>
+      </td>
+      <td>
+        <img src="./images/08-1f-warp.jpg" align="middle" width="100%">
+        <figcaption align="middle">08-1f warped</figcaption>
+      </td>
+      <td>
+        <img src="./images/29-1m-warp.jpg" align="middle" width="100%">
+        <figcaption align="middle">29-1m warped</figcaption>
+      </td>
+      <td>
+        <img src="./images/35-1f-warp.jpg" align="middle" width="100%">
+        <figcaption align="middle">35-1f warped</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+<p>Here is my face warped into the average shape, and the average face of the population warped into my face geometry.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/alex_padded.jpg" align="middle" width="100%">
+        <figcaption align="middle">My face (padded)</figcaption>
+      </td>
+      <td>
+        <img src="./images/alex_dane.jpg" align="middle" width="100%">
+        <figcaption align="middle">My face into average Dane shape</figcaption>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="./images/dane_alex.jpg" align="middle" width="100%">
+        <figcaption align="middle">Average Dane into my face shape</figcaption>
+      </td>
+      <td>
+        <img src="./images/dane_plt.jpg" align="middle" width="100%">
+        <figcaption align="middle">Average Dane face</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+
+<h2>Part 5: Caricatures: Extrapolating from the Mean</h2>
+<p>For this part, I used just the average shape of the males in the dataset to produce better looking caricatures. The caricature's shape is a weighted sum of my face's shape and the average male's shape. Specifically, caricature_pts = (1 - alpha) * alex_pts + alpha * avg_male_pts. A positive alpha results in an image with geometry more similar to the average Dane male's. Likewise, a negative alpha results in an image with geometry further from the average Dane male's, and a face shape that accentuates features of my face that deviate from the average Dane male's face.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/dane_plt.jpg" align="middle" width="100%">
+        <figcaption align="middle">Average Dane face</figcaption>
+      </td>
+      <td>
+        <img src="./images/avg_male_plt.jpg" align="middle" width="100%">
+        <figcaption align="middle">Average Dane male face</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/alex_car_neg.jpg" align="middle" width="100%">
+        <figcaption align="middle">Caricature (alpha=-1)</figcaption>
+      </td>
+      <td>
+        <img src="./images/alex_padded.jpg" align="middle" width="100%">
+        <figcaption align="middle">Alex (original)</figcaption>
+      </td>
+      <td>
+        <img src="./images/alex_car_pos.jpg" align="middle" width="100%">
+        <figcaption align="middle">Caricature (alpha=1.5)</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+
+<h2>Part 6: Bells and Whistles</h2>
+<p>I participated in the class face-morphing music video. My face is #21 (Alex Yang). Here is my face being morphed into the person after me (Zipeng Qin).</p>
+<div align="middle">
+  <img src="./gifs/21_22.gif" align="middle" width="30%">
+  <figcaption align="middle">Face 21 to Face 22</figcaption>
+</div>
+
+<p>The full music video can be found on YouTube <a href="https://youtu.be/O2p-U615Rzs">here</a>. Video also shown below:</p>
+<video width="100%" controls>
+  <source src="videos/class-morph.mp4" type="video/mp4">
+</video>
+

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<head>
+<style>
+body {
+  padding: 100px;
+  width: 1000px;
+  margin: auto;
+  text-align: left;
+  font-weight: 300;
+  font-family: 'Roboto', sans-serif;
+}
+
+a {
+  color: blue;
+}
+
+a:hover {
+  color: magenta;
+}
+
+div.padded {  
+  padding-top: 0px;  
+  padding-right: 50px;  
+  padding-bottom: 0.25in;  
+  padding-left: 50px;  
+}  
+
+pre.indent {
+  text-indent: 5%
+}
+
+table.data {
+  border-collapse: collapse;
+}
+
+th.img, td.img {
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 1rem;
+}
+
+
+th.data, td.data {
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 8px;
+}
+
+tr.data:nth-child(even) {background-color: #f2f2f2;}
+
+</style>
+<title>CS 194 Classification and Segmentation</title>
+</head>
+
+<center>
+  <h1>Project 4: Classification and Segmentation</h1>
+  <h3>Alex Yang</h3>
+</center>
+<br></br>
+
+<div class="padded">
+<h2>Part 1: Image Classification</h2>
+
+<h3>Dataset</h3>
+<p>I built a CNN to classify images of fashion items. I built the network using PyTorch and used Fashion MNIST as the dataset. Fashion MNIST has 10 classes and 60000 train + validation images and 10000 test images. Here are some images from the dataset:</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/fashion_example.png" align="middle" width="100%">
+        <figcaption align="middle">Bag, Ankle boot, Pullover, Coat</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3>Implementation Details</h3>
+<p>The network has two convolutional layers with 40 channels and a 3x3 kernel each. Each convolutional layer is followed by a ReLU followed by a max pool with a 2x2 kernel and stride of 2. There are then 2 fully connected layers with output size 120 and 10 respectively. The first fc layer is followed by a ReLU, but not the second. I used cross entropy loss as the prediction loss and Adam as the optimizer with a learning rate of 1e-3 and a weight decay of 1e-5.</p>
+<p><pre class="indent">Network: <font color="teal">input</font> -> conv -> relu -> pool -> conv -> relu -> pool -> fc1 -> relu -> fc2 -> <font color="sandybrown">outputs</font></pre></p>
+<p><pre class="indent">Optimizer: Adam (lr=1e-3, weight_decay=1e-5)</pre></p>
+<p>I tried different activiation functions (sigmoid, elu), number of channels (16, 32, 64), and convolution kernel sizes (5x5), as well as some other learning rates (1e-2, 1e-4), optimizers (SGD), and weight decays (0, 1e-4, 1e-6), and got the best results with the structure detailed above.</p>
+
+<h3>Results</h3>
+<p>The network is trained on 80% of the entire training set, and the rest is used for validation. I calculated accuracies after 100, 200, 500, 1000, 2000, 5000, 12000, 24000, and 48000 training samples.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <figcaption align="middle">Training and Validation Accuracy during training</figcaption>
+        <img src="./images/fashion_accuracy.png" align="middle" width="100%">
+      </td>
+      <td>
+        <table class="data">
+          <tr class="data">
+            <th class="data">Training Samples</th>
+            <th class="data">Training Accuracy</th>
+            <th class="data">Validation Accuracy</th>
+          </tr>
+          <tr class="data">
+            <td class="data">100</td>
+            <td class="data">70%</td>
+            <td class="data">58.1%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">200</td>
+            <td class="data">74.5%</td>
+            <td class="data">71.1%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">500</td>
+            <td class="data">81.8%</td>
+            <td class="data">75.1%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">1000</td>
+            <td class="data">85.5%</td>
+            <td class="data">78.8%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">2000</td>
+            <td class="data">86.7%</td>
+            <td class="data">82.0%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">5000</td>
+            <td class="data">88.5%</td>
+            <td class="data">84.9%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">12000</td>
+            <td class="data">91.2%</td>
+            <td class="data">87.8%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">24000</td>
+            <td class="data">92.2%</td>
+            <td class="data">89.2%</td>
+          </tr>
+          <tr class="data">
+            <td class="data">48000</td>
+            <td class="data">92.5%</td>
+            <td class="data">90.2%</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+<p>I trained the network for 30 epochs. After about 5 epochs, the validation accuracy starts to decline as the model is overfitting the training data.</p>
+<center>
+  <figcaption align="middle">Training and Validation Accuracy Across Epochs</figcaption>
+  <img src="./images/fashion_accuracy_2.png" align="middle" width="50%">
+</center>
+<br></br>
+<p>Here are the per class accuracies of the network for both validation and test sets. The hardest classes to classify are shirt and coat.</p>
+<div align="middle">
+  <table class="data">
+    <thead style="display:table-header-group">
+      <tr class="data">
+        <th class="data">Class</th>
+        <th class="data">Class Name</th>
+        <th class="data">Validation Accuracy</th>
+        <th class="data">Test Accuracy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="data">
+        <td class="data">0</td>
+        <td class="data">T-shirt/top</td>
+        <td class="data">88.3%</td>
+        <td class="data">86.8%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">1</td>
+        <td class="data">Trouser</td>
+        <td class="data">98.6%</td>
+        <td class="data">98.0%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">2</td>
+        <td class="data">Pullover</td>
+        <td class="data">85.2%</td>
+        <td class="data">84.4%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">3</td>
+        <td class="data">Dress</td>
+        <td class="data">93.3%</td>
+        <td class="data">93.5%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">4</td>
+        <td class="data">Coat</td>
+        <td class="data">81.6%</td>
+        <td class="data">79.1%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">5</td>
+        <td class="data">Sandal</td>
+        <td class="data">97.3%</td>
+        <td class="data">97.8%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">6</td>
+        <td class="data">Shirt</td>
+        <td class="data">68.2%</td>
+        <td class="data">65.9%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">7</td>
+        <td class="data">Sneaker</td>
+        <td class="data">95.9%</td>
+        <td class="data">95.6%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">8</td>
+        <td class="data">Bag</td>
+        <td class="data">97.5%</td>
+        <td class="data">98.0%</td>
+      </tr>
+      <tr class="data">
+        <td class="data">9</td>
+        <td class="data">Ankle boot</td>
+        <td class="data">95.8%</td>
+        <td class="data">95.7%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<br></br>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <figcaption align="middle">Validation Set Per Class Accuracy</figcaption>
+        <img src="./images/fashion_val_class_accuracy.png" align="middle" width="100%">
+      </td>
+      <td>
+        <figcaption align="middle">Test Set Per Class Accuracy</figcaption>
+        <img src="./images/fashion_test_class_accuracy.png" align="middle" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
+<br></br>
+<p>Here is a table showing some images that were classified correctly and some that weren't. The first column is the actual class name of the images in the middle, and the last column are the classes predicted by the model of the two incorrectly classified images.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <th class="img">Class Name</th>
+      <th class="img" colspan="2">Classified Correctly</th>
+      <th class="img" colspan="2">Classified Incorrectly</th>
+      <th class="img">Predicted Class Name</th>
+    </tr>
+    <tr>
+      <td class="img">T-shirt/top</td>
+      <td class="img">
+        <img src="./images/0_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/0_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/0_incorrect_3_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/0_incorrect_6_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Dress, Shirt</td>
+    </tr>
+    <tr>
+      <td class="img">Trouser</td>
+      <td class="img">
+        <img src="./images/1_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/1_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/1_incorrect_3_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/1_incorrect_3_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Dress, Dress</td>
+    </tr>
+    <tr>
+      <td class="img">Pullover</td>
+      <td class="img">
+        <img src="./images/2_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/2_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/2_incorrect_6_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/2_incorrect_6_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Shirt, Shirt</td>
+    </tr>
+    <tr>
+      <td class="img">Dress</td>
+      <td class="img">
+        <img src="./images/3_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/3_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/3_incorrect_6_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/3_incorrect_6_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Shirt, Shirt</td>
+    </tr>
+    <tr>
+      <td class="img">Coat</td>
+      <td class="img">
+        <img src="./images/4_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/4_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/4_incorrect_6_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/4_incorrect_2_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Shirt, Pullover</td>
+    </tr>
+    <tr>
+      <td class="img">Sandal</td>
+      <td class="img">
+        <img src="./images/5_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/5_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/5_incorrect_9_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/5_incorrect_7_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Ankle boot, Sneaker</td>
+    </tr>
+    <tr>
+      <td class="img">Shirt</td>
+      <td class="img">
+        <img src="./images/6_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/6_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/6_incorrect_0_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/6_incorrect_4_2.png" align="middle" width="100">
+      </td>
+      <td class="img">T-shirt/top, Coat</td>
+    </tr>
+    <tr>
+      <td class="img">Sneaker</td>
+      <td class="img">
+        <img src="./images/7_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/7_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/7_incorrect_9_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/7_incorrect_9_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Ankle boot, Ankle boot</td>
+    </tr>
+    <tr>
+      <td class="img">Bag</td>
+      <td class="img">
+        <img src="./images/8_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/8_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/8_incorrect_5_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/8_incorrect_5_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Sandal, Sandal</td>
+    </tr>
+    <tr>
+      <td class="img">Ankle boot</td>
+      <td class="img">
+        <img src="./images/9_correct_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/9_correct_2.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/9_incorrect_5_1.png" align="middle" width="100">
+      </td>
+      <td class="img">
+        <img src="./images/9_incorrect_7_2.png" align="middle" width="100">
+      </td>
+      <td class="img">Sandal, Sneaker</td>
+    </tr>
+  </table>
+</div>
+<p>The first convolution layer has forty 3x3 filters. The learned filters are displayed below.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/fashion_filters.png" align="middle" width="100%">
+        <figcaption align="middle">Visualizing Learned Filters</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h2>Part 2: Semantic Segmentation</h2>
+<h3>Dataset</h3>
+<p>In this part we use a CNN to do image segmentation. We use the Mini Facade dataset to label structural elements in building facades. The Mini Facade dataset consists of images of different cities around the world and diverse architectural styles (in .jpg format). It also contains semantic segmentation labels (in .png format) in 5 different classes: balcony, window, pillar, facade and others.</p>
+<center>
+  <figcaption align="middle">Example of image data and corresponding segmentation labels</figcaption>
+  <img src="./images/facade_example.png" align="middle" width="70%">
+  <img src="./images/facade_classes.png" align="middle" width="70%">
+</center>
+
+<h3>Implementation Details</h3>
+<p>The network has four convolutional layers each with 32 channels, a 3x3 kernel, and padding=1 on all sides of the image. Each convolutional layer is followed by a ReLU and then a max pool with a 2x2 kernel and a stride of 2. Each max pool halves the resolution, so we upsample with four transposed convolutions each with 32 channels, a 3x3 kernel, padding=1, and a stride of 2 to double the size of the input. The network has a final convolutional layer with 5 channels, a 3x3 kernel, and padding=1. This layer is not followed by ReLU or max pool.</p>
+<p>I used cross entropy loss as the prediction loss and Adam as the optimizer with a learning rate of 1e-3 and a weight decay of 1e-5.</p>
+<p><pre class="indent">Network: <font color="teal">input</font> -> [conv -> relu -> pool] (4 times) -> upsample (4 times) -> conv -> <font color="sandybrown">outputs</font></pre></p>
+<p><pre class="indent">Optimizer: Adam (lr=1e-3, weight_decay=1e-5)</pre></p>
+<p>I tried different hyperparameters (eg. learning rate, weight decay), optimizers, and network architectures, and got the best efficiency and results with these settings.</p>
+
+<h3>Results</h3>
+<p>The network was trained on 80% of the training data and the rest was used for validation. It trained for 50 epochs, and the loss per epoch is displayed below.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <figcaption align="middle">Training and Validation Loss Across Epochs</figcaption>
+        <img src="./images/facade_loss.png" align="middle" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
+<p>We also use Average Precision (AP) on the test set to evaluate the learned model. The per class AP and overall AP are shown below.</p>
+<div align="middle">
+  <table class="data">
+    <thead style="display:table-header-group">
+      <tr class="data">
+        <th class="data">Class</th>
+        <th class="data">Class Name</th>
+        <th class="data">Average Precision</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="data">
+        <td class="data">0</td>
+        <td class="data">others</td>
+        <td class="data">0.640</td>
+      </tr>
+      <tr class="data">
+        <td class="data">1</td>
+        <td class="data">facade</td>
+        <td class="data">0.752</td>
+      </tr>
+      <tr class="data">
+        <td class="data">2</td>
+        <td class="data">pillar</td>
+        <td class="data">0.114</td>
+      </tr>
+      <tr class="data">
+        <td class="data">3</td>
+        <td class="data">window</td>
+        <td class="data">0.808</td>
+      </tr>
+      <tr class="data">
+        <td class="data">4</td>
+        <td class="data">balcony</td>
+        <td class="data">0.526</td>
+      </tr>
+      <tr class="data">
+        <td class="data" colspan="2"><b>Overall Average Precision</b></td>
+        <td class="data"><b>0.568</b></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<p>Here is an image I took of Radcliffe Camera in Oxford, padded with black to make it 256x256. On the right is the output of Camera segemented by the model. Notice that some classes like window are segemented well, while others like balcony and pillars aren't. I think this may be because the image of the facade of the building is relatively small compared to the ones in the training set, so it's harder for the model to distinctly recognize the more detailed building features. </p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/camera_padded.jpg" align="middle" width="100%">
+        <figcaption align="middle">Camera (original)</figcaption>
+      </td>
+      <td>
+        <img src="./images/camera_out.png" align="middle" width="100%">
+        <figcaption align="middle">Camera (segmentation)</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+</div>
+

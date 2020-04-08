@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<head>
+<style>
+body {
+  padding: 100px;
+  width: 1000px;
+  margin: auto;
+  text-align: left;
+  font-weight: 300;
+  font-family: 'Lato', sans-serif;
+}
+
+a {
+  color: blue;
+}
+
+a:hover {
+  color: magenta;
+}
+
+div.padded {  
+  padding-right: 50px;  
+  padding-left: 50px;  
+}  
+
+pre.indent {
+  text-indent: 5%
+}
+
+table.data {
+  border-collapse: collapse;
+}
+
+th.img, td.img {
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 1rem;
+}
+
+
+th.data, td.data {
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 8px;
+}
+
+tr.data:nth-child(even) {background-color: #f2f2f2;}
+
+</style>
+<title>CS 194 [Auto]Stitching Photo Mosaics</title>
+</head>
+
+<div class="padded">
+<h1>Project 5: [Auto]Stitching Photo Mosaics</h1>
+<p>By: Alex Yang</p>
+<h2>Part 1: Image Warping and Mosaicing</h2>
+<p>This section covers finding homographies, transforming images, and stitching together transformed images to create mosaics.</p>
+<h3>Recover Homographies</h3>
+<p>Homographies relate two images of the same planar surface. It is a transformation from one projective space to another, and so it can be written as p' = Hp where H is a 3x3 matrix and p and p' are the projective spaces.</p>
+
+<p>In this part, we recover homographies between two sets of points. We establish p' = Hp for all corresponding points p' and p, and solve for the homography H. Specifically, we want to minimize the loss given by our homography:i</p>
+<center>
+  <img src="./images/homloss.png" align="middle" width="40%">
+</center>
+<p>The above can be written as a series of linear equations. The 8x1 vector can be solved using least squares, and to fully recover the homography we add 1 to the end of the vector and reshape it into a 3x3 matrix.</p>
+<center>
+  <img src="./images/homequations.png" align="middle" width="50%">
+</center>
+<p>The process of defining correspondence points was done manually by selecting matching locations between images.</p>
+<h3>Warp the Images</h3>
+<p>We can now warp images using the recovered homography. Because we are applying a perspective transform, the resulting image will have a different shape than the original. So, we first get the bounding box of the warped image by piping the corners of our original image through the homography. The warped corner points define a trapezoidal region which includes our warped image. We now use inverse mapping of the homography to map the points in the trapezoidal region to points in the original image. Each pixel is sampled using nearest neighbor sampling. The homography may map points to have negative values, so horizontal and vertical shifting are also needed to adjust for this.</p>
+
+<h3>Image Rectification</h3>
+<p>Image rectification is the process of applying a homography to an image usually for straightening, but it can also be more generally used to view images from a different perspective, resulting in some pretty cool effects.</p>
+<p>The process of doing this is simple. First define some correspondence points on an image &mdash; four points usually work well. Next, define correpondence points on where the other correspondence points should map to. Find the homography that relate these two sets of points and warp the original image with the homography.</p>
+<p>Here is an example I did to make my pencil pouch appear from a bird's-eye view. On the left is the original image taken from a slant, and on the right is the rectified image.</p>
+<div align="middle">
+  <table style="width=100%" cellpadding="40">
+    <tr>
+      <td>
+        <img src="./images/pocket.png" align="middle" height="400">
+        <figcaption align="middle">Original Image</figcaption>
+      </td>
+      <td>
+        <img src="./images/pocket_rectified.png" align="middle" height="400">
+        <figcaption align="middle">Warped Image</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3>Making Mosaics</h3>
+</div>
+

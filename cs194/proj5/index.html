@@ -27,8 +27,12 @@ pre.indent {
   text-indent: 5%
 }
 
-table.data {
-  border-collapse: collapse;
+table {
+  border-spacing: 40px 0;
+}
+
+table.mosaic {
+  border-spacing: 0 0;
 }
 
 th.img, td.img {
@@ -75,7 +79,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 <p>The process of doing this is simple. First define some correspondence points on an image &mdash; four points usually work well. Next, define correpondence points on where the other correspondence points should map to. Find the homography that relate these two sets of points and warp the original image with the homography.</p>
 <p>Here is an example I did to make my pencil pouch appear from a bird's-eye view. On the left is the original image taken from a slant, and on the right is the rectified image.</p>
 <div align="middle">
-  <table style="width=100%" cellpadding="40">
+  <table style="width=100%">
     <tr>
       <td>
         <img src="./images/pocket.png" align="middle" height="400">
@@ -88,7 +92,140 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     </tr>
   </table>
 </div>
+<p>Another example &mdash; Wheeler Hall in Berkeley.</p>
+<div align="middle">
+  <table style="width=100%" >
+    <tr>
+      <td>
+        <img src="./images/wheeler.png" align="middle" width="100%">
+        <figcaption align="middle">Original Image</figcaption>
+      </td>
+      <td>
+        <img src="./images/wheeler_rectified.png" align="middle" width="100%">
+        <figcaption align="middle">Warped Image</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
 
 <h3>Making Mosaics</h3>
+<p>Let's see how we can use our homographies and warp function to create mosaics. I took two photos for each mosaic, rotating the camera along the z-axis in between photos so that I could capture a wider view. Overlapping features in the photos are necessary so that we can define correspondence points between the two images. Example is shown below:</p>
+<div align="middle">
+  <table style="width=100%" >
+    <tr>
+      <td>
+        <img src="./images/memorial1.png" align="middle" width="100%">
+        <figcaption align="middle">First Shot</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial2.png" align="middle" width="100%">
+        <figcaption align="middle">Second Shot</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<p>Next, I labeled eight correspondence points between the two pictures. I then found the homography H between the points, warped the second image by H, and stitched the original and warped image together.</p>
+<p>In order to stitch the images, I first created a blank canvas in which I could stack the images onto. The warped image goes on first, then the original image on top, shifting the images accordingly before stacking. This essentially completes the process, but leaves some edge artifacts around the overlapping region. I used weighted averaging (feathering) to minimize these artifacts.</p>
+<p>I first tried linear blending, which involves using a linearly decreasing weight from 1 to 0 over the overlapping region. Specifically, the pixel value in the overlapping region is determined by <font color="teal">rgb = alpha * im1 + (1 - alpha) * im2</font>, where alpha is the weight of the original image's pixel values in the final image for a column in the overlapping region. The weight alpha decreases linearly from 1 to 0 over the columns in the overlapping region for linear blending. This worked well in getting rid of edge artifacts, but also created wedge-like artifacts at the crossing sections. So, instead of a linearly decreasing weight, I tried using a sigmoid function to determine the weight alpha. Now columns closer to the left and right edges of the overlapping region will be influenced even more by the left and right images, respectively. This helped reduce the effect of the wedge artifacts.</p>
+<p>Here are the mosaics of Doe Library:</p>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/memorial_overlap.png" align="middle" width="100%">
+        <figcaption align="middle">Simple Overlap</figcaption>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="./images/memorial_linear.png" align="middle" width="100%">
+        <figcaption align="middle">Linear</figcaption>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <img src="./images/memorial_sigmoid.png" align="middle" width="100%">
+        <figcaption align="middle">Sigmoid</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<p>More examples:</p>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/bayview1.png" align="middle" width="100%">
+        <figcaption align="middle">Bay View Shot 1</figcaption>
+      </td>
+      <td>
+        <img src="./images/bayview2.png" align="middle" width="100%">
+        <figcaption align="middle">Bay View Shot 2</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/bayview_sigmoid.png" align="middle" width="100%">
+        <figcaption align="middle">Sigmoid</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br></br>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/campanile1.png" align="middle" width="100%">
+        <figcaption align="middle">Campanile Shot 1</figcaption>
+      </td>
+      <td>
+        <img src="./images/campanile2.png" align="middle" width="100%">
+        <figcaption align="middle">Campanile Shot 2</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/campanile_sigmoid.png" align="middle" width="100%">
+        <figcaption align="middle">Sigmoid</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<br></br>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/uppersproul1.png" align="middle" width="100%">
+        <figcaption align="middle">Upper Sproul Shot 1</figcaption>
+      </td>
+      <td>
+        <img src="./images/uppersproul2.png" align="middle" width="100%">
+        <figcaption align="middle">Upper Sproul Shot 2</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/uppersproul_sigmoid.png" align="middle" width="100%">
+        <figcaption align="middle">Sigmoid</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<h3>What I learned</h3>
+<p>It was really cool learning how a simple homography can do so much. I think the best part was image rectification because the images really look like they were taken from another perspective even though I just multiplied the image by a homography matrix.</p>
 </div>
 

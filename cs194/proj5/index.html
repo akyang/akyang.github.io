@@ -10,6 +10,17 @@ body {
   font-family: 'Avenir', sans-serif;
 }
 
+div.column {
+  float: left;
+  width: 50%;
+}
+
+div.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 a {
   color: blue;
 }
@@ -59,13 +70,45 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </head>
 
 <div class="padded">
+<a name="top"></a>
 <center>
   <h1>Project 5: [Auto]Stitching Photo Mosaics</h1>
   <p>By: Alex Yang</p>
 </center>
+
+<div style="float: left; width: 50%;">
+  <p><a href="#part1">Part 1: Image Warping and Mosaicing</a></p>
+  <ul>
+    <li><a href="#part1a">Recover Homographies</a></li>
+    <li><a href="#part1b">Warp the Images</a></li>
+    <li><a href="#part1c">Image Rectification</a></li>
+    <li><a href="#part1d">Making Mosaics</a></li>
+    <li><a href="#part1e">What I learned</a></li>
+  </ul>
+</div>
+
+<div style="float: right; width: 50%;">
+  <p><a href="#part2">Part 2: Feature Matching for Autostitching</a></p>
+  <ul>
+    <li><a href="#part2a">Detecting Corners using Harris Interest Point Detector</a></li>
+    <li><a href="#part2b">Extracting Feature Descriptors</a></li>
+    <li><a href="#part2c">Feature Matching</a></li>
+    <li><a href="#part2d">RANSAC</a></li>
+    <li><a href="#part2e">Autostitching Results</a></li>
+    <li><a href="#part2f">What I learned</a></li>
+  </ul>
+</div>
+
 <br></br>
+<br></br>
+<br></br>
+<br></br>
+<br></br>
+<hr>
+<a name="part1"></a>
 <h2>Part 1: Image Warping and Mosaicing</h2>
 <p>This section covers finding homographies, transforming images, and stitching together transformed images to create mosaics.</p>
+<a name="part1a"></a>
 <h3>Recover Homographies</h3>
 <p>Homographies relate two images of the same planar surface. It is a transformation from one projective space to another, and so it can be written as p' = Hp where H is a 3x3 matrix and p and p' are the projective spaces.</p>
 
@@ -78,9 +121,12 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   <img src="./images/homequations.png" align="middle" width="50%">
 </center>
 <p>The process of defining correspondence points was done manually by selecting matching locations between images.</p>
+
+<a name="part1b"></a>
 <h3>Warp the Images</h3>
 <p>We can now warp images using the recovered homography. Because we are applying a perspective transform, the resulting image will have a different shape than the original. So, we first get the bounding box of the warped image by piping the corners of our original image through the homography. The warped corner points define a trapezoidal region which includes our warped image. We now use inverse mapping of the homography to map the points in the trapezoidal region to points in the original image. Each pixel is sampled using linear interpolation. The homography may map points to have negative values, so horizontal and vertical shifting are also needed to adjust for this.</p>
 
+<a name="part1c"></a>
 <h3>Image Rectification</h3>
 <p>Image rectification is the process of applying a homography to an image usually for straightening, but it can also be more generally used to view images from a different perspective, resulting in some pretty cool effects.</p>
 <p>The process of doing this is simple. First define some correspondence points on an image &mdash; four points usually work well. Next, define correpondence points on where the other correspondence points should map to. Find the homography that relate these two sets of points and warp the original image with the homography.</p>
@@ -115,6 +161,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </table>
 </div>
 
+<a name="part1d"></a>
 <h3>Making Mosaics</h3>
 <p>Let's see how we can use our homographies and warp function to create mosaics. I took two photos for each mosaic, rotating the camera along the z-axis in between photos so that I could capture a wider view. Overlapping features in the photos are necessary so that we can define correspondence points between the two images. Example is shown below:</p>
 <div align="middle">
@@ -214,15 +261,21 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   <img src="./images/uppersproul_sigmoid.png" align="middle" width="100%">
   <figcaption align="middle">Upper Sproul Mosaic (Sigmoid)</figcaption>
 </center>
+
+<a name="part1e"></a>
 <h3>What I learned</h3>
 <p>It was really cool learning how a simple homography can do so much. I think the best part was image rectification because the images really look like they were taken from another perspective even though I just multiplied the image by a homography matrix.</p>
 
-<br></br>
+<p><a href="#top">[Back to top]</a></p>
+
 <hr>
 <br></br>
 
+<a name="part2"></a>
 <h2>Part 2: Feature Matching for Autostitching</h2>
 <p>This section covers the process of automatically making mosaics. It heavily draws from <a href=https://inst.eecs.berkeley.edu/~cs194-26/sp20/Papers/MOPS.pdf">"Multi-Image Matching using Multi-Scale Oriented Patches" by Brown et al.</a></p>
+
+<a name="part2a"></a>
 <h3>Detecting Corners using Harris Interest Point Detector</h3>
 <p>In order to find features to use as our correspondence points, we must first detect interest points in the images we want to stitch. We use Harris Interest Point Detector to get all potential interest points. However, we discard any interest points that are within 20 pixels of the image border, for reasons that will be seen in the next section (Extracting Feature Descriptors).</p>
 <p>Using the same photos taken of Doe Library and the Campanile, we run the detector and get the following interest points in red:</p>
@@ -274,6 +327,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </table>
 </div>
 
+<a name="part2b"></a>
 <h3>Extracting Feature Descriptors</h3>
 <p>We now extract feature descriptors in preparation for Feature Matching (next section). Each feature descriptor is an axis-aligned 8x8 patch sampled from a larger 40x40 window around an interest point. Basically, we blur the 40x40 window around an interest point with a Gaussian filter, and then downsample to an 8x8 patch. Blurring and downsampling help our features be more robust. We also standardize the descriptor vector (mean=0, std=1) so that the features are invariant to affine changes in intensity.</p>
 <p>Here are the descriptors for corresponding points. The patch is from the upper right corner of one of the library windows.</p>
@@ -292,6 +346,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </table>
 </div>
 
+<a name="part2c"></a>
 <h3>Feature Matching</h3>
 <p>To match features across images, we use SSD to find the distance between all feature descriptors in one image and all descriptors in the other image. We then use Lowe thresholding to create a match. Lowe thresholding uses the ratio of the errors of the first nearest neighbor and second nearest neighbor. A feature descriptor is only matched to it's nearest neighbor in the other image and if the ratio of the error of the nearest neighbor to the error of the second nearest neighbor is below a threshold. We set this threshold as 0.5, as suggested in Brown et al. We also enforce that the two matched descriptors must be each other's nearest neighbor.</p>
 <p>Here are the matched features, labeled. You can see that the process does well for the most part, but there are some incorrect matches.</p>
@@ -310,6 +365,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </table>
 </div>
 
+<a name="part2d"></a>
 <h3>Random Sample Consensus (RANSAC)</h3>
 <p>We now use Random Sample Consensus (RANSAC) to robustify our feature matching. Because of the sensitivity to outliers in least squares, incorrect matches (outliers) left from the previous part will throw off our homography calculation if kept in the set of correspondence points. We deploy RANSAC into our autostitching process to remove incorrect feature matches.</p>
 <p>RANSAC is an iterative process. In each iteration, we sample four different pairs of matching points, and compute the homography H between them. We then transform every interest point in the first image by H. We now retrieve the set of inliers, which are points that are within one pixel away from their correspondence after being transformed. The set of points returned by RANSAC is simply the largest set of inliers.</p>
@@ -329,6 +385,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </table>
 </div>
 
+<a name="part2e"></a>
 <h3>Autostitching Results</h3>
 <p>This is the resulting image of Doe library after autostitching.</p>
 <center>
@@ -366,8 +423,11 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   <img src="./images/fingerguns_autostitch.png" align="middle" width="100%">
 </center>
 
+<a name="part2f"></a>
 <h3>What I learned</h3>
 <p>I think RANSAC was the coolest thing about this part. I like the idea that it seperates the structure from the noise. Even if there's much more noise, all the noise is different so the structural elements can still be found by RANSAC.</p>
+
+<p><a href="#top">[Back to top]</a></p>
 
 </div>
 

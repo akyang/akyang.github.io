@@ -25,8 +25,12 @@ a {
   color: blue;
 }
 
+a.contents {
+  text-decoration: none;
+}
+
 a:hover {
-  color: magenta;
+  color: dodgerblue;
 }
 
 div.padded {  
@@ -77,25 +81,25 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </center>
 
 <div style="float: left; width: 50%;">
-  <p><a href="#part1">Part 1: Image Warping and Mosaicing</a></p>
+  <p><a class="contents" href="#part1">Part 1: Image Warping and Mosaicing</a></p>
   <ul>
-    <li><a href="#part1a">Recover Homographies</a></li>
-    <li><a href="#part1b">Warp the Images</a></li>
-    <li><a href="#part1c">Image Rectification</a></li>
-    <li><a href="#part1d">Making Mosaics</a></li>
-    <li><a href="#part1e">What I learned</a></li>
+    <li><a class="contents" href="#part1a">Recover Homographies</a></li>
+    <li><a class="contents" href="#part1b">Warp the Images</a></li>
+    <li><a class="contents" href="#part1c">Image Rectification</a></li>
+    <li><a class="contents" href="#part1d">Making Mosaics</a></li>
+    <li><a class="contents" href="#part1e">What I learned</a></li>
   </ul>
 </div>
 
 <div style="float: right; width: 50%;">
-  <p><a href="#part2">Part 2: Feature Matching for Autostitching</a></p>
+  <p><a class="contents" href="#part2">Part 2: Feature Matching for Autostitching</a></p>
   <ul>
-    <li><a href="#part2a">Detecting Corners using Harris Interest Point Detector</a></li>
-    <li><a href="#part2b">Extracting Feature Descriptors</a></li>
-    <li><a href="#part2c">Feature Matching</a></li>
-    <li><a href="#part2d">RANSAC</a></li>
-    <li><a href="#part2e">Autostitching Results</a></li>
-    <li><a href="#part2f">What I learned</a></li>
+    <li><a class="contents" href="#part2a">Detecting Corners using Harris Interest Point Detector</a></li>
+    <li><a class="contents" href="#part2b">Extracting Feature Descriptors</a></li>
+    <li><a class="contents" href="#part2c">Feature Matching</a></li>
+    <li><a class="contents" href="#part2d">RANSAC</a></li>
+    <li><a class="contents" href="#part2e">Autostitching Results</a></li>
+    <li><a class="contents" href="#part2f">What I learned</a></li>
   </ul>
 </div>
 
@@ -269,7 +273,6 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 <p><a href="#top">[Back to top]</a></p>
 
 <hr>
-<br></br>
 
 <a name="part2"></a>
 <h2>Part 2: Feature Matching for Autostitching</h2>
@@ -317,11 +320,11 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     <tr>
       <td>
         <img src="./images/memorial1_harris_anms.png" align="middle" width="100%">
-        <figcaption align="middle">Interest points after ANMS (n=500)</figcaption>
+        <figcaption align="middle">Interest points after ANMS (c=0.9, n=500)</figcaption>
       </td>
       <td>
         <img src="./images/memorial2_harris_anms.png" align="middle" width="100%">
-        <figcaption align="middle">Interest points after ANMS (n=500)</figcaption>
+        <figcaption align="middle">Interest points after ANMS (c=0.9, n=500)</figcaption>
       </td>
     </tr>
   </table>

@@ -6,8 +6,8 @@ body {
   width: 1000px;
   margin: auto;
   text-align: left;
-  font-weight: 300;
-  font-family: 'Lato', sans-serif;
+  font-weight: 250;
+  font-family: 'Avenir', sans-serif;
 }
 
 a {
@@ -48,6 +48,10 @@ th.data, td.data {
   padding: 8px;
 }
 
+center.mosaic {
+  padding: 40px;
+}
+
 tr.data:nth-child(even) {background-color: #f2f2f2;}
 
 </style>
@@ -55,8 +59,11 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </head>
 
 <div class="padded">
-<h1>Project 5: [Auto]Stitching Photo Mosaics</h1>
-<p>By: Alex Yang</p>
+<center>
+  <h1>Project 5: [Auto]Stitching Photo Mosaics</h1>
+  <p>By: Alex Yang</p>
+</center>
+<br></br>
 <h2>Part 1: Image Warping and Mosaicing</h2>
 <p>This section covers finding homographies, transforming images, and stitching together transformed images to create mosaics.</p>
 <h3>Recover Homographies</h3>
@@ -72,7 +79,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </center>
 <p>The process of defining correspondence points was done manually by selecting matching locations between images.</p>
 <h3>Warp the Images</h3>
-<p>We can now warp images using the recovered homography. Because we are applying a perspective transform, the resulting image will have a different shape than the original. So, we first get the bounding box of the warped image by piping the corners of our original image through the homography. The warped corner points define a trapezoidal region which includes our warped image. We now use inverse mapping of the homography to map the points in the trapezoidal region to points in the original image. Each pixel is sampled using nearest neighbor sampling. The homography may map points to have negative values, so horizontal and vertical shifting are also needed to adjust for this.</p>
+<p>We can now warp images using the recovered homography. Because we are applying a perspective transform, the resulting image will have a different shape than the original. So, we first get the bounding box of the warped image by piping the corners of our original image through the homography. The warped corner points define a trapezoidal region which includes our warped image. We now use inverse mapping of the homography to map the points in the trapezoidal region to points in the original image. Each pixel is sampled using linear interpolation. The homography may map points to have negative values, so horizontal and vertical shifting are also needed to adjust for this.</p>
 
 <h3>Image Rectification</h3>
 <p>Image rectification is the process of applying a homography to an image usually for straightening, but it can also be more generally used to view images from a different perspective, resulting in some pretty cool effects.</p>
@@ -152,7 +159,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </div>
 <p>More examples:</p>
 <div align="middle">
-  <table style="width=100%" class="mosaic">
+  <table style="width=100%">
     <tr>
       <td>
         <img src="./images/bayview1.png" align="middle" width="100%">
@@ -165,19 +172,13 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     </tr>
   </table>
 </div>
-<div align="middle">
-  <table style="width=100%" class="mosaic">
-    <tr>
-      <td>
-        <img src="./images/bayview_sigmoid.png" align="middle" width="100%">
-        <figcaption align="middle">Sigmoid</figcaption>
-      </td>
-    </tr>
-  </table>
-</div>
+<center class="mosaic">
+  <img src="./images/bayview_sigmoid.png" align="middle" width="100%">
+  <figcaption align="middle">Bay View Mosaic (Sigmoid)</figcaption>
+</center>
 <br></br>
 <div align="middle">
-  <table style="width=100%" class="mosaic">
+  <table style="width=100%">
     <tr>
       <td>
         <img src="./images/campanile1.png" align="middle" width="100%">
@@ -190,19 +191,13 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     </tr>
   </table>
 </div>
-<div align="middle">
-  <table style="width=100%" class="mosaic">
-    <tr>
-      <td>
-        <img src="./images/campanile_sigmoid.png" align="middle" width="100%">
-        <figcaption align="middle">Sigmoid</figcaption>
-      </td>
-    </tr>
-  </table>
-</div>
+<center class="mosaic">
+  <img src="./images/campanile_sigmoid.png" align="middle" width="100%">
+  <figcaption align="middle">Campanile Mosaic (Sigmoid)</figcaption>
+</center>
 <br></br>
 <div align="middle">
-  <table style="width=100%" class="mosaic">
+  <table style="width=100%">
     <tr>
       <td>
         <img src="./images/uppersproul1.png" align="middle" width="100%">
@@ -215,17 +210,164 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     </tr>
   </table>
 </div>
+<center class="mosaic">
+  <img src="./images/uppersproul_sigmoid.png" align="middle" width="100%">
+  <figcaption align="middle">Upper Sproul Mosaic (Sigmoid)</figcaption>
+</center>
+<h3>What I learned</h3>
+<p>It was really cool learning how a simple homography can do so much. I think the best part was image rectification because the images really look like they were taken from another perspective even though I just multiplied the image by a homography matrix.</p>
+
+<br></br>
+<hr>
+<br></br>
+
+<h2>Part 2: Feature Matching for Autostitching</h2>
+<p>This section covers the process of automatically making mosaics. It heavily draws from <a href=https://inst.eecs.berkeley.edu/~cs194-26/sp20/Papers/MOPS.pdf">"Multi-Image Matching using Multi-Scale Oriented Patches" by Brown et al.</a></p>
+<h3>Detecting Corners using Harris Interest Point Detector</h3>
+<p>In order to find features to use as our correspondence points, we must first detect interest points in the images we want to stitch. We use Harris Interest Point Detector to get all potential interest points. However, we discard any interest points that are within 20 pixels of the image border, for reasons that will be seen in the next section (Extracting Feature Descriptors).</p>
+<p>Using the same photos taken of Doe Library and the Campanile, we run the detector and get the following interest points in red:</p>
 <div align="middle">
-  <table style="width=100%" class="mosaic">
+  <table style="width=100%">
     <tr>
       <td>
-        <img src="./images/uppersproul_sigmoid.png" align="middle" width="100%">
-        <figcaption align="middle">Sigmoid</figcaption>
+        <img src="./images/memorial1_harris.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial Shot 1 - Harris Points</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial2_harris.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial Shot 2 - Harris Points</figcaption>
       </td>
     </tr>
   </table>
 </div>
+
+<h4>Adaptive Non-Maximal Suppression (ANMS)</h4>
+<p>Harris Interest Point Detector gives a great start, but it's time to start filtering out interest points that aren't that interesting. One method is to just take the interest points with the highest Harris values. However, this results in interest points that are heavily clustered together around clearly defined corners. Having interest points that are spacially distributed is preferred because it will help our homography generalize well across the entire image, rather than just a few areas.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/memorial1_highest_harris.png" align="middle" width="100%">
+        <figcaption align="middle">Interest points with highest Harris values (n=500)</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial2_highest_harris.png" align="middle" width="100%">
+        <figcaption align="middle">Interest points with highest Harris values (n=500)</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<p>In order to get more evenly distributed interest points, we'll use adaptive non-maximal suppression (ANMS) as outlined in Brown et al. ANMS only keeps interest points that are the strongest in it's neighborhood of points. Strength is still determined by Harris value, but ANMS will only choose a few points in a neighborhood so we don't get as much clustering.</p>
+<p>In ANMS, each interst point is ranked in decreasing order by it's distance to the closest interest point that is significantly stronger. In other words, a point's suppression radius is determined by the minimum distance to another interest point that has Harris response at least 1/c * h, where c is a robustness parameter in [0,1) and h is the Harris response of the first point. We do this for all points and sort by suppression radius in decreasing order. We then take the top 500 points, for example. This process can be vectorized for efficiency.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/memorial1_harris_anms.png" align="middle" width="100%">
+        <figcaption align="middle">Interest points after ANMS (n=500)</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial2_harris_anms.png" align="middle" width="100%">
+        <figcaption align="middle">Interest points after ANMS (n=500)</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3>Extracting Feature Descriptors</h3>
+<p>We now extract feature descriptors in preparation for Feature Matching (next section). Each feature descriptor is an axis-aligned 8x8 patch sampled from a larger 40x40 window around an interest point. Basically, we blur the 40x40 window around an interest point with a Gaussian filter, and then downsample to an 8x8 patch. Blurring and downsampling help our features be more robust. We also standardize the descriptor vector (mean=0, std=1) so that the features are invariant to affine changes in intensity.</p>
+<p>Here are the descriptors for corresponding points. The patch is from the upper right corner of one of the library windows.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/mem1_feature.png" align="middle" width="100%" border="1">
+        <figcaption align="middle">Window patch in shot 1</figcaption>
+      </td>
+      <td>
+        <img src="./images/mem2_feature.png" align="middle" width="100%" border="1">
+        <figcaption align="middle">Window patch in shot 2</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3>Feature Matching</h3>
+<p>To match features across images, we use SSD to find the distance between all feature descriptors in one image and all descriptors in the other image. We then use Lowe thresholding to create a match. Lowe thresholding uses the ratio of the errors of the first nearest neighbor and second nearest neighbor. A feature descriptor is only matched to it's nearest neighbor in the other image and if the ratio of the error of the nearest neighbor to the error of the second nearest neighbor is below a threshold. We set this threshold as 0.5, as suggested in Brown et al. We also enforce that the two matched descriptors must be each other's nearest neighbor.</p>
+<p>Here are the matched features, labeled. You can see that the process does well for the most part, but there are some incorrect matches.</p>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/memorial1_desc_points.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 1 - 50 matched features</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial2_desc_points.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 2 - 50 matched features</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3>Random Sample Consensus (RANSAC)</h3>
+<p>We now use Random Sample Consensus (RANSAC) to robustify our feature matching. Because of the sensitivity to outliers in least squares, incorrect matches (outliers) left from the previous part will throw off our homography calculation if kept in the set of correspondence points. We deploy RANSAC into our autostitching process to remove incorrect feature matches.</p>
+<p>RANSAC is an iterative process. In each iteration, we sample four different pairs of matching points, and compute the homography H between them. We then transform every interest point in the first image by H. We now retrieve the set of inliers, which are points that are within one pixel away from their correspondence after being transformed. The set of points returned by RANSAC is simply the largest set of inliers.</p>
+<p>Here are the matched features after running RANSAC for 10,000 iterations. These are also the correspondence points we'll use to stitch the two images.</p>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/memorial1_points.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 1 - 21 correspondence points</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial2_points.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 2 - 21 correspondence points</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<h3>Autostitching Results</h3>
+<p>This is the resulting image of Doe library after autostitching.</p>
+<center>
+  <img src="./images/memorial_autostitch.png" align="middle" width="100%">
+</center>
+<br></br>
+<p>Here are some comparisons. On the top are mosaics stitched using manually labeled correspondences, and on the bottom are autostitched images. Autostitching really helps unblur the mosaics, probably because my manual correspondence points weren't very precise.</p>
+<center>
+  <figcaption align="middle">Memorial Glade</figcaption>
+  <img src="./images/memorial_sigmoid.png" align="middle" width="100%">
+  <img src="./images/memorial_autostitch.png" align="middle" width="100%">
+</center>
+<br></br>
+<center>
+  <figcaption align="middle">Bay View</figcaption>
+  <img src="./images/bayview_sigmoid.png" align="middle" width="100%">
+  <img src="./images/bayview_autostitch.png" align="middle" width="100%">
+</center>
+<br></br>
+<center>
+  <figcaption align="middle">Campanile</figcaption>
+  <img src="./images/campanile_sigmoid.png" align="middle" width="100%">
+  <img src="./images/campanile_autostitch.png" align="middle" width="100%">
+</center>
+<br></br>
+<center>
+  <figcaption align="middle">Upper Sproul</figcaption>
+  <img src="./images/uppersproul_sigmoid.png" align="middle" width="100%">
+  <img src="./images/uppersproul_autostitch.png" align="middle" width="100%">
+</center>
+<br></br>
+<p>And some fun images:</p>
+<center>
+  <img src="./images/couch_autostitch.png" align="middle" width="100%">
+  <img src="./images/fingerguns_autostitch.png" align="middle" width="100%">
+</center>
+
 <h3>What I learned</h3>
-<p>It was really cool learning how a simple homography can do so much. I think the best part was image rectification because the images really look like they were taken from another perspective even though I just multiplied the image by a homography matrix.</p>
+<p>I think RANSAC was the coolest thing about this part. I like the idea that it seperates the structure from the noise. Even if there's much more noise, all the noise is different so the structural elements can still be found by RANSAC.</p>
+
 </div>
 

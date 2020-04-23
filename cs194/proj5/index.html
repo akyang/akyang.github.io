@@ -78,9 +78,10 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 <center>
   <h1>Project 5: [Auto]Stitching Photo Mosaics</h1>
   <p>By: Alex Yang</p>
+  <img src="./images/cover.png" width="70%" padding="1px">
 </center>
 
-<div style="float: left; width: 50%;">
+<div style="float: left; width: 33%;">
   <p><a class="contents" href="#part1">Part 1: Image Warping and Mosaicing</a></p>
   <ul>
     <li><a class="contents" href="#part1a">Recover Homographies</a></li>
@@ -91,7 +92,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </ul>
 </div>
 
-<div style="float: right; width: 50%;">
+<div style="float: left; width: 33%;">
   <p><a class="contents" href="#part2">Part 2: Feature Matching for Autostitching</a></p>
   <ul>
     <li><a class="contents" href="#part2a">Detecting Corners using Harris Interest Point Detector</a></li>
@@ -100,9 +101,22 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     <li><a class="contents" href="#part2d">RANSAC</a></li>
     <li><a class="contents" href="#part2e">Autostitching Results</a></li>
     <li><a class="contents" href="#part2f">What I learned</a></li>
+    <li><a class="contents" href="#part2f">Bells and Whistles</a></li>
   </ul>
 </div>
 
+<div style="float: right; width: 33%;">
+  <p><a class="contents" href="#part3">Bells and Whistles</a></p>
+  <ul>
+    <li><a class="contents" href="#part3a">Multiscale Processing</a></li>
+    <li><a class="contents" href="#part3b">Rotation Invariant Descriptors</a></li>
+    <li><a class="contents" href="#part3c">Panorama Recognition</a></li>
+    <li><a class="contents" href="#part3d">Video Panorama</a></li>
+  </ul>
+</div>
+
+
+<br></br>
 <br></br>
 <br></br>
 <br></br>
@@ -182,9 +196,9 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
     </tr>
   </table>
 </div>
-<p>Next, I labeled eight correspondence points between the two pictures. I then found the homography H between the points, warped the second image by H, and stitched the original and warped image together.</p>
-<p>In order to stitch the images, I first created a blank canvas in which I could stack the images onto. The warped image goes on first, then the original image on top, shifting the images accordingly before stacking. This essentially completes the process, but leaves some edge artifacts around the overlapping region. I used weighted averaging (feathering) to minimize these artifacts.</p>
-<p>I first tried linear blending, which involves using a linearly decreasing weight from 1 to 0 over the overlapping region. Specifically, the pixel value in the overlapping region is determined by <font color="teal">rgb = alpha * im1 + (1 - alpha) * im2</font>, where alpha is the weight of the original image's pixel values in the final image for a column in the overlapping region. The weight alpha decreases linearly from 1 to 0 over the columns in the overlapping region for linear blending. This worked well in getting rid of edge artifacts, but also created wedge-like artifacts at the crossing sections. So, instead of a linearly decreasing weight, I tried using a sigmoid function to determine the weight alpha. Now columns closer to the left and right edges of the overlapping region will be influenced even more by the left and right images, respectively. This helped reduce the effect of the wedge artifacts.</p>
+<p>Next, I labeled eight correspondence points between the two pictures. I then took the average of all pairs of correspondences to find a more centered projection. Each picture is warped onto the new projective space by their respective homographies. Finally, I stitched the two warped images together.</p>
+<p>In order to stitch the images, I first created a blank canvas in which I could stack the images onto. The second image goes on first, then the first image on top, shifting the images accordingly before stacking. This essentially completes the process, but leaves some edge artifacts around the overlapping region. I used weighted averaging (feathering) to minimize these artifacts.</p>
+<p>I first tried linear blending, which involves using a linearly decreasing weight from 1 to 0 over the overlapping region. Specifically, the pixel value in the overlapping region is determined by <font color="teal">rgb = alpha * im1 + (1 - alpha) * im2</font>, where alpha is the weight of the left image's pixel values in the final image for a column in the overlapping region. The weight alpha decreases linearly from 1 to 0 over the columns in the overlapping region for linear blending. This worked well in getting rid of edge artifacts, but also created wedge-like artifacts at the crossing sections. So, instead of a linearly decreasing weight, I tried using a sigmoid function to determine the weight alpha. Now columns closer to the left and right edges of the overlapping region will be influenced even more by the left and right images, respectively. This helped reduce the effect of the wedge artifacts.</p>
 <p>Here are the mosaics of Doe Library:</p>
 <div align="middle">
   <table style="width=100%" class="mosaic">
@@ -209,25 +223,6 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   </table>
 </div>
 <p>More examples:</p>
-<div align="middle">
-  <table style="width=100%">
-    <tr>
-      <td>
-        <img src="./images/bayview1.png" align="middle" width="100%">
-        <figcaption align="middle">Bay View Shot 1</figcaption>
-      </td>
-      <td>
-        <img src="./images/bayview2.png" align="middle" width="100%">
-        <figcaption align="middle">Bay View Shot 2</figcaption>
-      </td>
-    </tr>
-  </table>
-</div>
-<center class="mosaic">
-  <img src="./images/bayview_sigmoid.png" align="middle" width="100%">
-  <figcaption align="middle">Bay View Mosaic (Sigmoid)</figcaption>
-</center>
-<br></br>
 <div align="middle">
   <table style="width=100%">
     <tr>
@@ -395,17 +390,11 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   <img src="./images/memorial_autostitch.png" align="middle" width="100%">
 </center>
 <br></br>
-<p>Here are some comparisons. On the top are mosaics stitched using manually labeled correspondences, and on the bottom are autostitched images. Autostitching really helps unblur the overlapping region of the mosaics, probably because my manual correspondence points weren't very precise.</p>
+<p>Here are some comparisons. On the top are mosaics stitched using manually labeled correspondences, and on the bottom are autostitched images. Autostitching really helps minimize the ghosting in the overlapping region of the mosaics, probably because my manual correspondence points weren't very precise.</p>
 <center>
   <figcaption align="middle">Memorial Glade</figcaption>
   <img src="./images/memorial_sigmoid.png" align="middle" width="100%">
   <img src="./images/memorial_autostitch.png" align="middle" width="100%">
-</center>
-<br></br>
-<center>
-  <figcaption align="middle">Bay View</figcaption>
-  <img src="./images/bayview_sigmoid.png" align="middle" width="100%">
-  <img src="./images/bayview_autostitch.png" align="middle" width="100%">
 </center>
 <br></br>
 <center>
@@ -429,6 +418,112 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 <a name="part2f"></a>
 <h3>What I learned</h3>
 <p>I think RANSAC was the coolest thing about this part. I like the idea that it seperates the structure from the noise. Even if there's much more noise, all the noise is different so the structural elements can still be found by RANSAC.</p>
+
+<p><a href="#top">[Back to top]</a></p>
+
+<hr>
+
+<a name="part3"></a>
+<h2>Bells and Whistles</h2>
+<a name="part3a"></a>
+<h3>Multiscale Processing</h3>
+<p>In order to make the stitching process scale invariant, we create feature descriptors for interest points at multiple levels of a Gaussian pyramid with scale=2. We first detect corners at five levels of the pyramid, feed these points through ANMS, and then extract feature descriptors at each of these levels. We then combine all the feature descriptors together and scale the feature coordinates according to its Gaussian pyramid level. For example, the coordinates of a descriptor on the second level is multiplied by 2 since the original image was scaled down by 2. Feature matching can then match features from different levels of the pyramid, resulting in our autostitching process being invariant to image scale.</p>
+<p>Here's scale invariant descriptors used on the original set of pictures of Doe library, as well as them used on a scaled down version of picture 2. The multiscale processing actually helps the non-scaled version match better too. It's hard to tell the second picture is scaled down in the second mosaic, but you can kind of see the right half of the second mosaic is blurrier, compared to the first one without the scaled down image.</p>
+<center>
+  <img src="./images/memorial_autostitch_bw.png" align="middle" width="100%">
+  <figcaption align="middle">Multiscale processing on original photos</figcaption>
+</center>
+<br></br>
+<center>
+  <img src="./images/memorial_scaled_autostitch_bw.png" align="middle" width="100%">
+  <figcaption align="middle">Multiscale Processing after scaling down right photo</figcaption>
+</center>
+
+<a name="part3b"></a>
+<h3>Rotation Invariant Descriptors</h3>
+<p>We also want to be able to stitch images that aren't in the same orientation. To do so, we need oriented feature descriptors instead of axis-aligned ones. In feature extraction, we calculate the smoothed gradient of the image in both x and y directions. We then rotate every 40x40 window by the average gradient of each window around the interest point, and sample the 8x8 patch from the pixels in the rotated window. This makes corresponding features across two images to be oriented in the same way prior to matching.</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/memorial1.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 1</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial_rotated2.jpg" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 2 (rotated ~25 degrees)</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<center class="mosaic">
+  <img src="./images/memorial_rotated_autostitch_bw.png" align="middle" width="100%">
+  <figcaption align="middle">Rotation Invariant Stitching</figcaption>
+</center>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="./images/memorial1.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 1</figcaption>
+      </td>
+      <td>
+        <img src="./images/memorial_rotated902.png" align="middle" width="100%">
+        <figcaption align="middle">Memorial shot 2 (rotated -90 degrees)</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+<center class="mosaic">
+  <img src="./images/memorial_rotated90_autostitch_bw.png" align="middle" width="70%">
+  <figcaption align="middle">Rotation Invariant Stitching</figcaption>
+</center>
+
+<a name="part3c"></a>
+<h3>Panorama Recognition</h3>
+<p>Given a bunch of images, some forming panoramas, we want to be able to automatically stitch images that belong together. All we have to do is extract feature descriptors for every image, match features and run RANSAC for every pair of images, and pair together images that have the highest number of inliers. An image is only paired with another image if the number of inliers between the two images is greater than four, the minimum number of correspondences needed for a homography, and if they are each other's image with the greatest number of inliers. AKA they must be each other's best friends.</p>
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/memorial1.png" align="middle" width="100%">
+      </td>
+      <td>
+        <img src="./images/uppersproul2.png" align="middle" width="100%">
+      </td>
+      <td>
+        <img src="./images/campanile1.png" align="middle" width="100%">
+      </td>
+      <td>
+        <img src="./images/memorial_rotated2.jpg" align="middle" width="100%">
+      </td>
+      <td>
+        <img src="./images/uppersproul1.png" align="middle" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
+<figcaption align="middle">Given set of images</figcaption>
+
+<div align="middle">
+  <table style="width=100%" class="mosaic">
+    <tr>
+      <td>
+        <img src="./images/autopano_0_3.png" align="middle" width="100%">
+      </td>
+      <td>
+        <img src="./images/autopano_1_4.png" align="middle" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
+<figcaption align="middle">Automatically stitched panoramas</figcaption>
+
+<a name="part3d"></a>
+<h3>Video Panorama</h3>
+<p>I went to the Berkeley Marina to take a few videos to make a video panorama. Each frame in video 1 is stitched with the corresponding frame in video 2. The video is a bit shaky though. Here's the result:</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/1IcxrQmkvFY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <p><a href="#top">[Back to top]</a></p>
 

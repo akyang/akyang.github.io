@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<head>
+<style>
+body {
+  padding: 100px;
+  width: 1000px;
+  margin: auto;
+  text-align: left;
+  font-weight: 250;
+  font-family: 'Avenir', sans-serif;
+}
+
+div.column {
+  float: left;
+  width: 50%;
+}
+
+div.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+a {
+  color: blue;
+}
+
+a.contents {
+  text-decoration: none;
+}
+
+a:hover {
+  color: dodgerblue;
+}
+
+div.padded {  
+  padding-right: 50px;  
+  padding-left: 50px;  
+}  
+
+pre.indent {
+  text-indent: 5%
+}
+
+table {
+  border-spacing: 40px 0;
+}
+
+table.mosaic {
+  border-spacing: 0 0;
+}
+
+th.img, td.img {
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 1rem;
+}
+
+
+th.data, td.data {
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  padding: 8px;
+}
+
+center.mosaic {
+  padding: 40px;
+}
+
+tr.data:nth-child(even) {background-color: #f2f2f2;}
+
+</style>
+<title>CS 194 [Auto]Stitching Photo Mosaics</title>
+</head>
+
+<div class="padded">
+<a name="top"></a>
+<center>
+  <h1>Final Projects</h1>
+  <p>By: Alex Yang</p>
+</center>
+
+<div style="float: left; width: 50%;">
+  <p><a class="contents" href="#project1">1. Neural Style Transfer</a></p>
+  <ul>
+    <li><a class="contents" href="#part1a">Overview</a></li>
+    <li><a class="contents" href="#part1b">Model and Parameters</a></li>
+    <li><a class="contents" href="#part1d">Results</a></li>
+  </ul>
+</div>
+
+<div style="float: left; width: 50%;">
+  <p><a class="contents" href="#part2">Part 2: Feature Matching for Autostitching</a></p>
+  <ul>
+    <li><a class="contents" href="#part2a">Detecting Corners using Harris Interest Point Detector</a></li>
+    <li><a class="contents" href="#part2b">Extracting Feature Descriptors</a></li>
+    <li><a class="contents" href="#part2c">Feature Matching</a></li>
+    <li><a class="contents" href="#part2d">RANSAC</a></li>
+    <li><a class="contents" href="#part2e">Autostitching Results</a></li>
+    <li><a class="contents" href="#part2f">What I learned</a></li>
+  </ul>
+</div>
+
+<br></br>
+<br></br>
+<br></br>
+<br></br>
+<hr>
+
+<a name="project1"></a>
+<h2>Neural Style Transfer</h2>
+<p>This is the first pre-canned project I did: Neural Style Transfer. It is based off of the paper <a href="https://arxiv.org/pdf/1508.06576.pdf">"A Neural Algorithm of Artistic Style" by Gatys et al.</a></p>
+<a name="part1a"></a>
+<h3>Overview</h3>
+<p>Neural style transfer is the process of applying an artistic style to another image by using a convolutional neural network. </p>
+<div align="middle">
+  <table style="width=100%" >
+    <tr>
+      <td>
+        <figcaption align="middle">Content Image</figcaption>
+        <img src="./nst_images/neckarfront.jpg" align="middle" height="200">
+      </td>
+      <td>
+        <figcaption align="middle">Style Image</figcaption>
+        <img src="./nst_images/vangogh.jpg" align="middle" height="200">
+      </td>
+      <td>
+        <figcaption align="middle">Stylized Image</figcaption>
+        <img src="./nst_images/neckarfront_vangogh.jpg" align="middle" height="200">
+      </td>
+    </tr>
+  </table>
+</div>
+<p>This is done by minimizing the sum of the content loss and style loss. The content loss is the MSE of the output image with the input content image, and the style loss is the sum of the MSEs of the output image and style image at multiple convolutional layers of the network. Essentially, the CNN compares the content of the output image to the content of the content image, compares the style of the output image to the style of the style image, and iteratively modifies the output image until both losses are minimized. More details are described in the paper.</p>
+
+<h3>Model and Parameters</h3>
+<p>The model is a modified version of VGG-19. The first layer is a normalization layer that normalizes (mean and std) the input images to ImageNet, the dataset VGG-19 is trained on. There are five convolutional layers, each except the last followed by ReLU and an average pooling layer. The first two layers have 64 channels each, the third and fourth have 128 channels each, and the last has 256 channels. All layers have a 3x3 kernel, a stride of 1, and padding of 1. Additionally, the network has StyleLoss layers after each convolutional layer, and a ContentLoss layer after the fourth convolutional layer. These additional layers are only to compute the style loss and content loss in order to get the total loss to improve the style transfer, as explained under the Methods section in the paper.</p>
+<center>
+  <img src="./nst_images/architecture.png" align="middle" width="90%">
+</center>
+<p>Optimizer: LBFGS (lr=1)</p>
+<p>
+  Hyperparameters:
+  <ul>
+    <li>Content loss weight = 1</li>
+    <li>Style loss weight = 1e6</li>
+    <li>Style layer weights = 1/5</li>
+    <li>Content Layers = ['conv_4']</li>
+    <li>Style Layers = ['conv_1', 'conv_2', 'conv_3', 'conv_4', 'conv_5']</li>
+    <li>Num steps = 500</li>
+  </ul>
+</p>
+<p>The network architecture I used is prety similar to the one described in the paper. The biggest difference is the ratio of the content weight to the style weight (&alpha;/&beta; in the paper) is 1e-6 compared to 1e-4 or 1e-3 in the paper. I also experimented with different content layers ('conv_5' and 'conv_5'), but 'conv_4' produced the best results. Additionally, I tried using max pooling instead of average pooling, but average pooling had better results for the most part.</p>
+
+<h3>Results</h3>
+<p>Here are the results of running the style transfer on the examples in the paper. The content image is Neckarfront in Tübingen, Germany.</p> 
+<center>
+  <img src="./nst_images/neckarfront.jpg" align="middle" width="70%">
+  <figcaption align="middle">Neckarfront, Tübingen, Germany</figcaption>
+</center>
+<p>The style images are <i>The Starry Night</i> by Vincent van Gogh (1889), <i>Der Schrei</i> by Edvard Munch (1893), <i>Femme nue assise</i> by Pablo Picasso (1910), and <i>Composition VII</i> by Wassily Kandinsky (1913).</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <th class="img">Painting</th>
+      <th class="img">Content Image</th>
+      <th class="img">Style Image</th>
+      <th class="img">Stylized Image</th>
+    </tr>
+    <tr>
+      <td class="img"><i>The Starry Night</i>, Vincent van Gogh, 1889.</td>
+      <td class="img">
+        <img src="./nst_images/neckarfront.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/vangogh.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/neckarfront_vangogh.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img"><i>Der Schrei</i>, Edvard Munch, 1893.</td>
+      <td class="img">
+        <img src="./nst_images/neckarfront.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/munch.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/neckarfront_munch.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img"><i>Femme nue assise</i>, Pablo Picasso, 1910.</td>
+      <td class="img">
+        <img src="./nst_images/neckarfront.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/picasso.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/neckarfront_picasso.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img"><i>Composition VII</i>, Wassily Kandinsky, 1913.</td>
+      <td class="img">
+        <img src="./nst_images/neckarfront.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/kandinsky.jpg" align="middle" width="150">
+      </td>
+      <td class="img">
+        <img src="./nst_images/neckarfront_kandinsky.jpg" align="middle" width="300">
+      </td>
+    </tr>
+  </table>
+</div>
+<p>Compared to the results in the paper, my images definitely show stronger edges and retain more of the content image's detail. For example, in the Picasso and Kandinsky versions in the paper, you can barely make out the building shapes, let alone the windows and tree branches. I think the results in the paper look better because the stylistic elements are more dominant. I like how the results in the paper show each artist's distinctive style, yet you can still barely make out the content of the image. My images on the other hand clearly show the image content, but don't showcase the artist's distinctive style as much.</p>
+<p>And here are some of my own style transfers. The style images are <i>Stacks of Wheat (End of Summer)</i> by Claude Monet (1890/91), <i>Untitled XXXIX</i> by Willem de Kooning (1983), and <i>Gloucester Harbor</i> by Winslow Homer (1873).</p>
+
+Las Trampas Regional Wilderness Park.
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <th class="img">Content Image</th>
+      <th class="img">Style Image</th>
+      <th class="img">Stylized Image</th>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/trampas.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/monet3.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/trampas_monet3.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/trampas.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/dekooning.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/trampas_dekooning.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/trampas.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/homer2.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/trampas_homer2.jpg" align="middle" width="300">
+      </td>
+    </tr>
+  </table>
+</div>
+
+<br></br>
+Berkeley Marina.
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <th class="img">Content Image</th>
+      <th class="img">Style Image</th>
+      <th class="img">Stylized Image</th>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/boats.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/monet3.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/boats_monet3.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/boats.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/dekooning.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/boats_dekooning.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/boats.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/homer2.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/boats_homer2.jpg" align="middle" width="300">
+      </td>
+    </tr>
+  </table>
+</div>
+
+<br></br>
+Montalvo Arts Center, Saratoga.
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <th class="img">Content Image</th>
+      <th class="img">Style Image</th>
+      <th class="img">Stylized Image</th>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/villa.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/monet3.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/villa_monet3.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/villa.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/dekooning.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/villa_dekooning.jpg" align="middle" width="300">
+      </td>
+    </tr>
+    <tr>
+      <td class="img">
+        <img src="./nst_images/villa.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/homer2.jpg" align="middle" width="200">
+      </td>
+      <td class="img">
+        <img src="./nst_images/villa_homer2.jpg" align="middle" width="300">
+      </td>
+    </tr>
+  </table>
+</div>
+<p>The Monet and de Kooning style transfers worked well for the most part. I wished there were more of Monet's brushwork apparent in the images but the overall style looks like Monet. The style transfer that didn't work as well was Homer. I think the dark underside of the boat made the stylized images really dark in some areas (like in the boats image). Also the Homer version of Montalvo Arts Center had a lot of noise possibly due to the optimizer not converging properly (maybe the lr is too high).</p>
+
+<p><a href="#top">[Back to top]</a></p>
+
+<hr>
+

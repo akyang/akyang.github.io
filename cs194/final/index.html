@@ -85,7 +85,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
   <ul>
     <li><a class="contents" href="#part1a">Overview</a></li>
     <li><a class="contents" href="#part1b">Model and Parameters</a></li>
-    <li><a class="contents" href="#part1d">Results</a></li>
+    <li><a class="contents" href="#part1c">Results</a></li>
   </ul>
 </div>
 
@@ -133,6 +133,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </div>
 <p>This is done by minimizing the sum of the content loss and style loss. The content loss is the MSE of the output image with the input content image, and the style loss is the sum of the MSEs of the output image and style image at multiple convolutional layers of the network. Essentially, the CNN compares the content of the output image to the content of the content image, compares the style of the output image to the style of the style image, and iteratively modifies the output image until both losses are minimized. More details are described in the paper.</p>
 
+<a name="part1b"></a>
 <h3>Model and Parameters</h3>
 <p>The model is a modified version of VGG-19. The first layer is a normalization layer that normalizes (mean and std) the input images to ImageNet, the dataset VGG-19 is trained on. There are five convolutional layers, each except the last followed by ReLU and an average pooling layer. The first two layers have 64 channels each, the third and fourth have 128 channels each, and the last has 256 channels. All layers have a 3x3 kernel, a stride of 1, and padding of 1. Additionally, the network has StyleLoss layers after each convolutional layer, and a ContentLoss layer after the fourth convolutional layer. These additional layers are only to compute the style loss and content loss in order to get the total loss to improve the style transfer, as explained under the Methods section in the paper.</p>
 <center>
@@ -152,6 +153,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </p>
 <p>The network architecture I used is prety similar to the one described in the paper. The biggest difference is the ratio of the content weight to the style weight (&alpha;/&beta; in the paper) is 1e-6 compared to 1e-4 or 1e-3 in the paper. I also experimented with different content layers ('conv_5' and 'conv_5'), but 'conv_4' produced the best results. Additionally, I tried using max pooling instead of average pooling, but average pooling had better results for the most part.</p>
 
+<a name="part1c"></a>
 <h3>Results</h3>
 <p>Here are the results of running the style transfer on the examples in the paper. The content image is Neckarfront in Tübingen, Germany.</p> 
 <center>

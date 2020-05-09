@@ -70,7 +70,7 @@ center.mosaic {
 tr.data:nth-child(even) {background-color: #f2f2f2;}
 
 </style>
-<title>CS 194 [Auto]Stitching Photo Mosaics</title>
+<title>CS 194 Final Projects</title>
 </head>
 
 <div class="padded">
@@ -90,14 +90,12 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 </div>
 
 <div style="float: left; width: 50%;">
-  <p><a class="contents" href="#part2">Part 2: Feature Matching for Autostitching</a></p>
+  <p><a class="contents" href="#project2">2. Seam Carving</a></p>
   <ul>
-    <li><a class="contents" href="#part2a">Detecting Corners using Harris Interest Point Detector</a></li>
-    <li><a class="contents" href="#part2b">Extracting Feature Descriptors</a></li>
-    <li><a class="contents" href="#part2c">Feature Matching</a></li>
-    <li><a class="contents" href="#part2d">RANSAC</a></li>
-    <li><a class="contents" href="#part2e">Autostitching Results</a></li>
-    <li><a class="contents" href="#part2f">What I learned</a></li>
+    <li><a class="contents" href="#part2a">Overview</a></li>
+    <li><a class="contents" href="#part2b">Results</a></li>
+    <li><a class="contents" href="#part2c">Bells and Whistles: Seam Insertion</a></li>
+    <li><a class="contents" href="#part2d">What I learned</a></li>
   </ul>
 </div>
 
@@ -109,7 +107,7 @@ tr.data:nth-child(even) {background-color: #f2f2f2;}
 
 <a name="project1"></a>
 <h2>Neural Style Transfer</h2>
-<p>This is the first pre-canned project I did: Neural Style Transfer. It is based off of the paper <a href="https://arxiv.org/pdf/1508.06576.pdf">"A Neural Algorithm of Artistic Style" by Gatys et al.</a></p>
+<p>This is the first pre-canned project I did: Neural Style Transfer. It is based off of the paper <a href="https://arxiv.org/pdf/1508.06576.pdf" target=_blank>"A Neural Algorithm of Artistic Style" by Gatys et al.</a></p>
 <a name="part1a"></a>
 <h3>Overview</h3>
 <p>Neural style transfer is the process of applying an artistic style to another image by using a convolutional neural network. </p>
@@ -355,9 +353,115 @@ Montalvo Arts Center, Saratoga.
     </tr>
   </table>
 </div>
-<p>The Monet and de Kooning style transfers worked well for the most part. I wished there were more of Monet's brushwork apparent in the images but the overall style looks like Monet. The style transfer that didn't work as well was Homer. I think the dark underside of the boat made the stylized images really dark in some areas (like in the boats image). Also the Homer version of Montalvo Arts Center had a lot of noise possibly due to the optimizer not converging properly (maybe the lr is too high).</p>
+<p>The Monet and de Kooning style transfers worked well for the most part. I wished there were more of Monet's brushwork apparent in the images but the overall style looks like Monet. As for some failures, the style transfer that didn't work as well was Homer. I think the dark underside of the boat made the stylized images really dark in some areas (like in the boats image). Also the Homer version of Montalvo Arts Center had a lot of noise possibly due to the optimizer not converging properly (maybe the lr is too high).</p>
 
 <p><a href="#top">[Back to top]</a></p>
 
 <hr>
 
+<a name="project2"></a>
+<h2>Seam Carving</h2>
+<p>This is the second pre-canned project I did: Seam Carving. It is based off of the paper <a href="https://inst.eecs.berkeley.edu/~cs194-26/fa18/hw/proj4-seamcarving/imret.pdf" target=_blank>"Seam Carving for Content-Aware Image Resizing" by Shai Avidan and Ariel Shamir.</a></p>
+
+<a name="part2a"></a>
+<h3>Overview</h3>
+<p>Seam carving is the process of resizing an image by removing seams, either vertically or horizontally. A vertical seam is set of connected pixels going from the top of the image to the bottom and has only one pixel per row. Connected means at least one corner is touching between pixels. A horizontal seam is the same, but along the columns of the image. Seams are removed until the desired image size is acheived. In this project, the height or width can be changed, but not both at the same time.</p>
+<div style="text-align:center;font-size:small;font-weight:bold;width:300px;margin-left:auto;margin-right:auto">
+  <img src="./sc_images/seam_examples.png" align="middle" width="200">
+  <figcaption>Seam examples. <i>Black</i>: horizontal seam. <i>Gray</i>: vertical seam. <i>Green</i>: not a seam -- contains more than one pixel from some columns.</figcaption>
+</div>
+<p>In order to determine which seam should be removed, every seam is given a cost equal to the sum of the energy values of each pixel in the seam. That is, a seam's cost is determined by the total energy of its pixels. In this project, a pixel's energy is calculated by taking the magnitude of gradients at that location. Finally, the seam with the lowest energy is removed.</p>
+<p>The process of computing each seam's cost can be formulated as a dynamic programming problem. For vertical seam carving, we start at the top of the image and iteratively make our way down. The minimum cost of a vertical seam at pixel (i, j) is equal to the minimum seam cost of the three connected pixels above it plus the energy cost of itself. Specifically,
+<center>
+  <img src="./sc_images/dp_equation.png" align="middle" width="500">
+</center>
+where <i>e</i> is the energy function, <i>M</i> is the minimum seam cost, and <i>(i,j)</i> is the pixel location.</p>
+<p>The bottom row (i.e. when <i>i</i> is the height of our image) has the cumulative energy costs of all seams ending at location <i>j</i> within the row. We take the pixel with the minimum cost and backtrace our way up to get all pixels in the seam. Finally, we remove the seam and start the entire process again until our desired image size is reached.</p>
+<p>For horizontal seam carving, transpose the image, run vertical seam carving, and transpose back to get the final image.</p>
+
+<a name="part2b"></a>
+<h3>Results</h3>
+<p>Horizontal carving results (removing vertical seams):</p>
+<center>
+  <img src="./sc_images/cabin.jpg" align="middle">
+  <img src="./sc_images/cabin_carved.jpg" align="middle">
+  <figcaption align="middle">Cabin: (512 x 384) vs. (312 x 384)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/durian.jpg" align="middle" height=350>
+  <img src="./sc_images/durian_carved.jpg" align="middle" height=350>
+  <figcaption align="middle">Durian: (512 x 384) vs. (400 x 384)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/fostercity.jpg" align="middle">
+  <img src="./sc_images/fostercity_carved.jpg" align="middle">
+  <figcaption align="middle">Foster City: (512 x 288) vs: (300 x 288)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/yosemite.jpg" align="middle">
+  <img src="./sc_images/yosemite_carved.jpg" align="middle">
+  <figcaption align="middle">Yosemite: (512 x 384) vs (350 x 384)</figcaption>
+</center>
+
+<p>Vertical carving results: (removing horizontal seams)</p>
+<center>
+  <img src="./sc_images/fruit.jpg" align="middle">
+  <img src="./sc_images/fruit_carved.jpg" align="middle">
+  <figcaption align="middle">Fruit: (288 x 512) vs. (288 x 400)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/glacier.jpg" align="middle" width=400>
+  <img src="./sc_images/glacier_carved.jpg" align="middle" width=400>
+  <figcaption align="middle">Glacier: (512 x 384) vs. (512 x 300)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/islands.jpg" align="middle" width=400>
+  <img src="./sc_images/islands_carved.jpg" align="middle" width=400>
+  <figcaption align="middle">Islands: (512 x 288) vs: (512 x 200)</figcaption>
+</center>
+
+<p>Failures:</p>
+<center>
+  <img src="./sc_images/basketball.jpg" align="middle">
+  <img src="./sc_images/basketball_carved.jpg" align="middle">
+  <figcaption align="middle">Basketball (attempted horizontal carving): (288 x 512) vs. (288 x 400)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/villa.jpg" align="middle" width=400>
+  <img src="./sc_images/villa_carved.jpg" align="middle" width=400>
+  <figcaption align="middle">Villa (attempted vertical carving): (512 x 384) vs. (512 x 300)</figcaption>
+</center>
+<p>Overall, seam carving does pretty well in removing the boring areas of the image (eg. sky, water, trees) while keeping the main content intact. The first failure doesn't look too bad until you notice that the ball is thrown backwwards. This is probably because the algorithm is removing seams that are between the person and the ball. For the second failure, there's a lot of structure and parallel lines in the photo, so it's especially noticeable when the composition is a little off. I think this one just had too much detail and no "free" space for the seam carver to remove.</p>
+
+
+<a name="part2c"></a>
+<h3>Bells and Whistles: Seam Insertion</h3>
+<p>Seam insertion is the process of adding seams in order to enlarge the image. For example, if the width is increased, vertical seams are inserted into the image. Like seam removal, we add seams that have the lowest energy cost. However, this causes the same seam to have minimum cost in every iteration since we aren't removing it anymore. The result is image stretching along the seam that has minimum cost. To account for this, we first <i>remove</i> the number of seams we need to add, and store their position for later. Next, we go through each removed seam and duplicate it by taking the average of the two neighboring seams. Since we stored the position of the seam during the removal process, we can simply insert the new average seam next to the removed seam in the original image. This effectively adds a seam into our image. To reduce artifacts, we also have to keep track of the number of seams removed and the number of seams added so that we can accurately insert the seam into the right position.</p>
+<p>Some results:</p>
+<center>
+  <img src="./sc_images/cabin.jpg" align="middle">
+  <img src="./sc_images/cabin_inserted.jpg" align="middle">
+  <figcaption align="middle">Cabin: (512 x 384) vs. (612 x 384)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/glacier.jpg" align="middle">
+  <img src="./sc_images/glacier_inserted.jpg" align="middle">
+  <figcaption align="middle">Glacier: (512 x 384) vs. (582 x 384)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/durian.jpg" align="middle">
+  <img src="./sc_images/durian_inserted.jpg" align="middle">
+  <figcaption align="middle">Durian: (512 x 384) vs. (562 x 384)</figcaption>
+  <br></br>
+
+  <img src="./sc_images/fostercity.jpg" align="middle">
+  <img src="./sc_images/fostercity_inserted.jpg" align="middle">
+  <figcaption align="middle">Foster City: (512 x 288) vs. (912 x 288)</figcaption>
+</center>
+
+<a name="part2d"></a>
+<h3>What I learned</h3>
+<p>It was very cool implementing the dynamic programming portion and optimizing it to run efficiently. It was also very nice seeing the results of seam insertion since I could barely tell the images were processed when they weren't side by side.</p>
+<p><a href="#top">[Back to top]</a></p>
+
+</div>

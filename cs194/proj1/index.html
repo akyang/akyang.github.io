@@ -1,11 +1,13 @@
 Project 0 <br></br>
-This project was to learn how to overlay images of different color scales. We took real world data of separate color scale plates to make a <br></br>
-full colorized image. My approach was to first crop out the white borders for easier aligning. I had two methods for aligning: the naive exhaustive <br></br>
-search and the gaussian pyramid search method. The first method just takes a window of displacements and tries every one of them to see which displacement <br></br>
-works the best. All of these images were aligning the green and red plates to the blue plate. The gaussian pyramid way first does a gaussian blur over <br></br>
-the image and then rescales the image by half. This continues until the image is under a certain size. Then it begins trying to find the best displacement. <br></br>
-The best displacement is propogated down the pyramid and is used as an estame for the next best displacement. For the photo of emir, I had to align the <br></br>
+<div style="width=1000px">
+This project was to learn how to overlay images of different color scales. We took real world data of separate color scale plates to make a
+full colorized image. My approach was to first crop out the white borders for easier aligning. I had two methods for aligning: the naive exhaustive
+search and the gaussian pyramid search method. The first method just takes a window of displacements and tries every one of them to see which displacement
+works the best. All of these images were aligning the green and red plates to the blue plate. The gaussian pyramid way first does a gaussian blur over
+the image and then rescales the image by half. This continues until the image is under a certain size. Then it begins trying to find the best displacement.
+The best displacement is propogated down the pyramid and is used as an estame for the next best displacement. For the photo of emir, I had to align the
 blue and red plates to the green plate. The metric for alignment I used was zero-normalized cross correlation.
+</div>
 <br></br>
 <img src="pictures/cathedral.jpg" height="500">
 Green disp: [5, 2]
